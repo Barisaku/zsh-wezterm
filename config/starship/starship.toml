@@ -1,0 +1,421 @@
+"$schema" = "https://starship.rs/config-schema.json"
+
+# macOS / WSL / Linux 共通で使うための Starship 設定。
+# bobthefish / fish_prompt に近い、Nerd Font 前提の2行プロンプト。
+# 1行目は情報ブロック、2行目は入力専用にして見やすくする。
+
+add_newline = true
+command_timeout = 1000
+scan_timeout = 30
+palette = "main"
+
+format = """
+$directory\
+$username\
+$hostname\
+$git_branch\
+$git_status\
+$git_state\
+$python\
+$ruby\
+$golang\
+$nodejs\
+$rust\
+$java\
+$php\
+$swift\
+$dotnet\
+$lua\
+$deno\
+$bun\
+$zig\
+$kotlin\
+$cmake\
+$docker_context\
+$direnv\
+$container\
+$kubernetes\
+$aws\
+$gcloud\
+$azure\
+$terraform\
+$nix_shell\
+$package\
+$sudo\
+$localip\
+$memory_usage\
+$os\
+$shell\
+$cmd_duration\
+$time\
+[ ](fg:left_bg)\
+$line_break\
+$jobs\
+$status\
+$character"""
+
+# 右寄せは resize 後に崩れやすいため使わない。
+# ログ上で「そのプロンプトが出た時刻」を残すため、時刻は通常セグメントとして表示する。
+right_format = ""
+
+[palettes.main]
+fg = "#d7d7d7"
+muted = "#808080"
+black = "#1c1c1c"
+blue = "#5f87d7"
+cyan = "#5fafaf"
+green = "#5f875f"
+yellow = "#af875f"
+red = "#d75f5f"
+purple = "#875faf"
+orange = "#d7875f"
+dir_bg = "#5f8787"
+dir_fg = "#101010"
+git_bg = "#5f875f"
+git_fg = "#101010"
+runtime_bg = "#875faf"
+runtime_fg = "#ffffff"
+warn_bg = "#af875f"
+warn_fg = "#101010"
+error_bg = "#d75f5f"
+error_fg = "#ffffff"
+info_bg = "#444444"
+info_fg = "#d7d7d7"
+left_bg = "#1d2230"
+left_fg = "#d7dee9"
+left_dim = "#a0a9cb"
+
+
+# ------------------------------------------------------------
+# Prompt Core
+# ------------------------------------------------------------
+
+[character]
+success_symbol = "[❯](bold green)"
+error_symbol = "[❯](bold red)"
+vimcmd_symbol = "[❮](bold yellow)"
+vimcmd_replace_one_symbol = "[❮](bold purple)"
+vimcmd_replace_symbol = "[❮](bold purple)"
+vimcmd_visual_symbol = "[❮](bold cyan)"
+
+[username]
+show_always = false
+format = "[  $user ]($style)"
+style_user = "fg:left_dim bg:left_bg bold"
+style_root = "fg:red bg:left_bg bold"
+
+[hostname]
+ssh_only = true
+format = "[ 󰣀 $hostname ]($style)"
+style = "fg:yellow bg:left_bg bold"
+trim_at = "."
+
+[directory]
+format = "[](fg:left_bg)[  $path$read_only ]($style)"
+style = "fg:left_fg bg:left_bg bold"
+read_only = " "
+read_only_style = "fg:red bg:left_bg"
+truncation_length = 4
+truncate_to_repo = false
+home_symbol = "~"
+fish_style_pwd_dir_length = 1
+
+[directory.substitutions]
+"Documents" = "󰈙 "
+"Downloads" = " "
+"Music" = " "
+"Pictures" = " "
+
+[jobs]
+format = "[$symbol$number ]($style)"
+symbol = " "
+style = "fg:blue bold"
+
+[status]
+disabled = false
+format = "[$symbol$status ]($style)"
+symbol = "✘ "
+style = "fg:red bold"
+map_symbol = true
+
+[time]
+disabled = false
+format = "[  $time ]($style)"
+style = "fg:muted bg:left_bg"
+time_format = "%Y-%m-%d %H:%M"
+
+[battery]
+format = "[$symbol$percentage]($style)"
+full_symbol = "󰁹 "
+charging_symbol = "󰂄 "
+discharging_symbol = "󰁾 "
+unknown_symbol = "󰂑 "
+empty_symbol = "󰂎 "
+disabled = false
+
+[[battery.display]]
+threshold = 20
+style = "bold red"
+
+[[battery.display]]
+threshold = 50
+style = "yellow"
+
+
+# ------------------------------------------------------------
+# Git / VCS
+# ------------------------------------------------------------
+
+[git_branch]
+format = "[ $symbol$branch(:$remote_branch) ]($style)"
+symbol = " "
+style = "fg:green bg:left_bg bold"
+truncation_length = 32
+truncation_symbol = "..."
+
+[git_status]
+format = "[$all_status$ahead_behind]($style)"
+style = "fg:yellow bg:left_bg bold"
+conflicted = " ${count} "
+ahead = "⇡${count} "
+behind = "⇣${count} "
+diverged = "⇕⇡${ahead_count}⇣${behind_count} "
+up_to_date = ""
+untracked = "?${count} "
+stashed = " ${count} "
+modified = "!${count} "
+staged = "+${count} "
+renamed = "»${count} "
+deleted = "✘${count} "
+
+[git_state]
+format = "[ $state( $progress_current/$progress_total) ]($style)"
+style = "fg:purple bg:left_bg bold"
+
+
+# ------------------------------------------------------------
+# Languages / Runtimes
+# ------------------------------------------------------------
+
+[python]
+format = "[  $version( $virtualenv) ]($style)"
+style = "fg:yellow bg:left_bg bold"
+pyenv_version_name = true
+detect_extensions = ["py"]
+detect_files = [
+  ".python-version",
+  "pyproject.toml",
+  "requirements.txt",
+  "setup.py",
+  "tox.ini",
+]
+detect_folders = [".venv", "venv"]
+
+[ruby]
+format = "[  $version ]($style)"
+style = "fg:red bg:left_bg bold"
+detect_extensions = ["rb"]
+detect_files = ["Gemfile", ".ruby-version"]
+
+[golang]
+format = "[  $version ]($style)"
+style = "fg:cyan bg:left_bg bold"
+detect_extensions = ["go"]
+detect_files = ["go.mod", "go.sum"]
+
+[nodejs]
+format = "[  $version ]($style)"
+style = "fg:green bg:left_bg bold"
+detect_extensions = ["js", "mjs", "cjs", "ts", "mts", "cts"]
+detect_files = ["package.json", ".node-version", ".nvmrc"]
+
+[rust]
+format = "[  $version ]($style)"
+style = "fg:orange bg:left_bg bold"
+
+[java]
+format = "[  $version ]($style)"
+style = "fg:red bg:left_bg bold"
+
+[php]
+format = "[  $version ]($style)"
+style = "fg:purple bg:left_bg bold"
+
+[swift]
+format = "[  $version ]($style)"
+style = "fg:orange bg:left_bg bold"
+
+[dotnet]
+format = "[  $version ]($style)"
+style = "fg:purple bg:left_bg bold"
+
+[lua]
+format = "[  $version ]($style)"
+style = "fg:blue bg:left_bg bold"
+
+[deno]
+format = "[  $version ]($style)"
+style = "fg:green bg:left_bg bold"
+
+[bun]
+format = "[  $version ]($style)"
+style = "fg:yellow bg:left_bg bold"
+
+[zig]
+format = "[  $version ]($style)"
+style = "fg:yellow bg:left_bg bold"
+
+[kotlin]
+format = "[  $version ]($style)"
+style = "fg:purple bg:left_bg bold"
+
+[cmake]
+format = "[ △ $version ]($style)"
+style = "fg:blue bg:left_bg bold"
+
+[package]
+format = "[ 󰏗 $version ]($style)"
+style = "fg:left_dim bg:left_bg"
+disabled = true
+
+
+# ------------------------------------------------------------
+# Infra / Cloud
+# ------------------------------------------------------------
+
+[docker_context]
+format = "[ 󰡨 $context ]($style)"
+style = "fg:blue bg:left_bg bold"
+only_with_files = true
+
+[direnv]
+disabled = false
+format = "[ 󱁿 $loaded ]($style)"
+style = "fg:yellow bg:left_bg bold"
+detect_files = [".envrc"]
+
+[container]
+disabled = false
+format = "[ 󰏖 $name ]($style)"
+style = "fg:red bg:left_bg bold"
+
+[kubernetes]
+disabled = true
+format = "[ 󱃾 $context(/$namespace) ]($style)"
+style = "fg:purple bg:left_bg bold"
+
+[aws]
+disabled = true
+format = "[ 󰸏 $profile(/$region) ]($style)"
+style = "fg:yellow bg:left_bg bold"
+
+[gcloud]
+disabled = true
+format = "[ 󱇶 $account(@$domain)(/$project) ]($style)"
+style = "fg:blue bg:left_bg bold"
+
+[azure]
+disabled = true
+format = "[ 󰠅 $subscription ]($style)"
+style = "fg:blue bg:left_bg bold"
+
+[terraform]
+disabled = true
+format = "[ 󱁢 $workspace ]($style)"
+style = "fg:purple bg:left_bg bold"
+
+[nix_shell]
+disabled = false
+format = "[ 󱄅 $state( $name) ]($style)"
+style = "fg:blue bg:left_bg bold"
+
+
+# ------------------------------------------------------------
+# Duration
+# ------------------------------------------------------------
+
+[cmd_duration]
+min_time = 100
+format = "[ 󱎫 $duration ]($style)"
+style = "fg:yellow bg:left_bg bold"
+show_milliseconds = true
+
+
+# ------------------------------------------------------------
+# Noise Control
+# ------------------------------------------------------------
+
+[os]
+disabled = true
+format = "[ $symbol ]($style)"
+style = "fg:blue bg:left_bg bold"
+
+[os.symbols]
+Alpaquita = "os:alpaquita"
+Alpine = "os:alpine"
+Amazon = "os:amazon"
+Android = "os:android"
+Arch = "os:arch"
+Artix = "os:artix"
+CentOS = "os:centos"
+Debian = "os:debian"
+DragonFly = "os:dragonfly"
+Emscripten = "os:emscripten"
+EndeavourOS = "os:endeavour"
+Fedora = "os:fedora"
+FreeBSD = "os:freebsd"
+Garuda = "os:garuda"
+Gentoo = "os:gentoo"
+HardenedBSD = "os:hardenedbsd"
+Illumos = "os:illumos"
+Linux = "os:linux"
+Mabox = "os:mabox"
+Macos = "os:macos"
+Manjaro = "os:manjaro"
+Mariner = "os:mariner"
+MidnightBSD = "os:midnightbsd"
+Mint = "os:mint"
+NetBSD = "os:netbsd"
+NixOS = "os:nixos"
+OpenBSD = "os:openbsd"
+OpenCloudOS = "os:opencloudos"
+openEuler = "os:openeuler"
+openSUSE = "os:opensuse"
+OracleLinux = "os:oracle"
+Pop = "os:pop"
+Raspbian = "os:raspbian"
+Redhat = "os:redhat"
+RedHatEnterprise = "os:rhel"
+Redox = "os:redox"
+Solus = "os:solus"
+SUSE = "os:suse"
+Ubuntu = "os:ubuntu"
+Ultramarine = "os:ultramarine"
+Unknown = "os:unknown"
+Void = "os:void"
+Windows = "os:windows"
+
+[shell]
+disabled = true
+format = "[  $indicator ]($style)"
+style = "fg:left_dim bg:left_bg"
+
+[localip]
+disabled = true
+ssh_only = false
+format = "[ 󰩠 $localipv4 ]($style)"
+style = "fg:yellow bg:left_bg bold"
+
+[memory_usage]
+disabled = true
+threshold = 75
+format = "[ 󰍛 ${ram_pct} ]($style)"
+style = "fg:red bg:left_bg bold"
+
+[sudo]
+disabled = true
+format = "[ 󰌾 sudo ]($style)"
+style = "fg:red bg:left_bg bold"
+
+[line_break]
+disabled = false

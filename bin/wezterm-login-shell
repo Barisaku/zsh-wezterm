@@ -1,0 +1,29 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# WezTerm local shell wrapper.
+# ローカル作業セッションも script(1) でログ保存する。
+# SSH のログは wezterm-ssh-log 側で接続先ごとに保存する。
+
+LOG_DIR="${WEZTERM_LOCAL_LOG_DIR:-$HOME/.local/share/wezterm/session-logs}"
+mkdir -p "$LOG_DIR"
+
+timestamp="$(date '+%Y%m%d-%H%M%S')"
+log_file="$LOG_DIR/session-${timestamp}.log"
+
+if [[ "${WEZTERM_SESSION_LOGGING:-}" == "1" ]]; then
+  exec "${SHELL:-/bin/zsh}" -l
+fi
+
+export WEZTERM_SESSION_LOGGING=1
+
+if command -v script >/dev/null 2>&1; then
+  if script --version >/dev/null 2>&1; then
+    exec script -q -a -c "${SHELL:-/bin/zsh} -l" "$log_file"
+  else
+    exec script -q -a "$log_file" "${SHELL:-/bin/zsh}" -l
+  fi
+fi
+
+printf 'wezterm-login-shell: script(1) is not available; running without log\n' >&2
+exec "${SHELL:-/bin/zsh}" -l

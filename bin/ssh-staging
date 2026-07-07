@@ -1,0 +1,5 @@
+#!/usr/bin/env sh
+set -eu
+
+# Staging SSH shortcut.
+exec "${HOME}/bin/wezterm-ssh-log" --profile staging "$@"

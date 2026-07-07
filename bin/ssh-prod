@@ -1,0 +1,6 @@
+#!/usr/bin/env sh
+set -eu
+
+# Production SSH shortcut.
+# WezTerm 側では prod profile として扱い、複数行ペーストを拒否する。
+exec "${HOME}/bin/wezterm-ssh-log" --profile prod "$@"

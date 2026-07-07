@@ -1,0 +1,6 @@
+#!/usr/bin/env sh
+set -eu
+
+# Shell-independent shortcut.
+# zsh / fish / bash など、どの shell からでも同じ名前で使えるようにする。
+exec "${HOME}/bin/wezterm-ssh-log" "$@"

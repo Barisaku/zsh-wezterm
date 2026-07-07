@@ -1,0 +1,14 @@
+.DS_Store
+
+# 個人情報や手元メモを置く場合はここに入れる。
+private/
+archive/
+
+# 実行時ログやバックアップは公開しない。
+*.log
+*.backup
+*.backup.*
+*.tmp
+session-logs/
+ssh-logs/
+

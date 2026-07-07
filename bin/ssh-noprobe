@@ -1,0 +1,5 @@
+#!/usr/bin/env sh
+set -eu
+
+# SSH shortcut without the entry probe.
+exec "${HOME}/bin/wezterm-ssh-log" --no-probe "$@"

@@ -1,0 +1,412 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# SSH wrapper for WezTerm/zsh workflows.
+# - Saves a log per profile/host using script(1).
+# - Runs an entry probe on the remote host: id && date && uname -n.
+# - Exports local metadata for WezTerm launcher/status integration.
+
+profile="default"
+name=""
+log_enabled=1
+probe_enabled=1
+log_root="${WEZTERM_SSH_LOG_DIR:-$HOME/.local/share/wezterm/ssh-logs}"
+
+usage() {
+  cat <<'EOF'
+Usage:
+  wezterm-ssh-log [options] -- [ssh-options...] <ssh-target>
+  wezterm-ssh-log [options] [ssh-options...] <ssh-target>
+
+Options:
+  --profile NAME   Profile name such as prod, staging, dev. Default: default.
+  --name NAME      Display/log name. Default: derived from ssh target.
+  --log-dir DIR    Log root directory. Default: ~/.local/share/wezterm/ssh-logs.
+  --no-log         Do not wrap with script(1).
+  --no-probe       Do not run "id && date && uname -n" after login.
+  -h, --help       Show this help.
+
+Examples:
+  wezterm-ssh-log --profile prod -- example-prod
+  wezterm-ssh-log --profile prod --name example-prod -- -p 22 alice@example-prod
+  wezterm-ssh-log --profile dev -- example-dev
+EOF
+}
+
+shell_quote() {
+  local value="$1"
+  printf "'%s'" "${value//\'/\'\\\'\'}"
+}
+
+sanitize_name() {
+  local value="$1"
+  value="${value#*@}"
+  value="${value%%:*}"
+  value="${value//[^A-Za-z0-9_.-]/_}"
+  if [[ -z "$value" ]]; then
+    value="unknown"
+  fi
+  printf '%s' "$value"
+}
+
+wezterm_user_var() {
+  local key="$1"
+  local value="$2"
+  local encoded=""
+
+  if [[ -z "${WEZTERM_PANE:-}" ]]; then
+    return 0
+  fi
+
+  if command -v base64 >/dev/null 2>&1; then
+    encoded="$(printf '%s' "$value" | base64 | tr -d '\n')"
+    printf '\033]1337;SetUserVar=%s=%s\007' "$key" "$encoded"
+  fi
+}
+
+set_ssh_user_vars() {
+  wezterm_user_var WEZTERM_SSH_PROFILE "$profile"
+  wezterm_user_var WEZTERM_SSH_HOST "$name"
+}
+
+clear_ssh_user_vars() {
+  wezterm_user_var WEZTERM_SSH_PROFILE ""
+  wezterm_user_var WEZTERM_SSH_HOST ""
+}
+
+derive_target_name() {
+  local candidate=""
+  candidate="$(find_ssh_target "$@")"
+
+  if [[ -z "$candidate" ]]; then
+    candidate="unknown"
+  fi
+
+  sanitize_name "$candidate"
+}
+
+ssh_option_takes_value() {
+  case "$1" in
+    -b|-c|-D|-E|-e|-F|-I|-i|-J|-L|-l|-m|-O|-o|-p|-Q|-R|-S|-W|-w)
+      return 0
+      ;;
+    *)
+      return 1
+      ;;
+  esac
+}
+
+find_ssh_target() {
+  local arg
+  local skip_next=0
+
+  for arg in "$@"; do
+    if [[ "$skip_next" -eq 1 ]]; then
+      skip_next=0
+      continue
+    fi
+
+    case "$arg" in
+      --)
+        continue
+        ;;
+      -*)
+        if ssh_option_takes_value "$arg"; then
+          skip_next=1
+        fi
+        ;;
+      *)
+        printf '%s' "$arg"
+        return 0
+        ;;
+    esac
+  done
+}
+
+normalize_ssh_args() {
+  local -a options=()
+  local -a remote_command=()
+  local target=""
+  local arg
+
+  while [[ $# -gt 0 ]]; do
+    arg="$1"
+
+    if [[ -z "$target" ]]; then
+      case "$arg" in
+        --)
+          shift
+          ;;
+        -*)
+          options+=("$arg")
+          shift
+          if ssh_option_takes_value "$arg" && [[ $# -gt 0 ]]; then
+            options+=("$1")
+            shift
+          fi
+          ;;
+        *)
+          target="$arg"
+          shift
+          ;;
+      esac
+      continue
+    fi
+
+    case "$arg" in
+      -*)
+        options+=("$arg")
+        shift
+        if ssh_option_takes_value "$arg" && [[ $# -gt 0 ]]; then
+          options+=("$1")
+          shift
+        fi
+        ;;
+      *)
+        remote_command+=("$arg")
+        shift
+        ;;
+    esac
+  done
+
+  normalized_ssh_args=("${options[@]}")
+  if [[ -n "$target" ]]; then
+    normalized_ssh_args+=("$target")
+  fi
+  if [[ "${#remote_command[@]}" -gt 0 ]]; then
+    normalized_ssh_args+=("${remote_command[@]}")
+  fi
+}
+
+build_ssh_command() {
+  local command="command ssh"
+  local arg
+  local target_seen=0
+  local has_remote_command=0
+  local has_tty_option=0
+  local disables_tty=0
+  local skip_next=0
+
+  for arg in "$@"; do
+    command+=" $(shell_quote "$arg")"
+
+    if [[ "$skip_next" -eq 1 ]]; then
+      skip_next=0
+      continue
+    fi
+
+    if [[ "$target_seen" -eq 0 ]]; then
+      case "$arg" in
+        -*)
+          case "$arg" in
+            -t|-tt)
+              has_tty_option=1
+              ;;
+            -T)
+              disables_tty=1
+              ;;
+          esac
+          if ssh_option_takes_value "$arg"; then
+            skip_next=1
+          fi
+          ;;
+        *)
+          target_seen=1
+          ;;
+      esac
+    else
+      has_remote_command=1
+    fi
+  done
+
+  if [[ "$probe_enabled" -eq 1 && "$has_remote_command" -eq 0 ]]; then
+    if [[ "$has_tty_option" -eq 0 && "$disables_tty" -eq 0 ]]; then
+      command+=" -t"
+    fi
+    command+=" $(shell_quote 'id && date && uname -n; exec ${SHELL:-/bin/sh} -l')"
+  fi
+
+  printf '%s' "$command"
+}
+
+build_ssh_config_query_args() {
+  ssh_config_query_args=("-G")
+
+  local arg
+  local target_seen=0
+  local skip_next=0
+
+  for arg in "$@"; do
+    if [[ "$skip_next" -eq 1 ]]; then
+      ssh_config_query_args+=("$arg")
+      skip_next=0
+      continue
+    fi
+
+    if [[ "$target_seen" -eq 0 ]]; then
+      case "$arg" in
+        -G)
+          ;;
+        -*)
+          ssh_config_query_args+=("$arg")
+          if ssh_option_takes_value "$arg"; then
+            skip_next=1
+          fi
+          ;;
+        *)
+          ssh_config_query_args+=("$arg")
+          target_seen=1
+          ;;
+      esac
+    fi
+  done
+}
+
+ssh_args_include_config_dump() {
+  local arg
+
+  for arg in "$@"; do
+    if [[ "$arg" == "-G" ]]; then
+      return 0
+    fi
+  done
+
+  return 1
+}
+
+ssh_config_has_remote_command() {
+  local config_line=""
+
+  build_ssh_config_query_args "$@"
+
+  if [[ "${#ssh_config_query_args[@]}" -le 1 ]]; then
+    return 1
+  fi
+
+  config_line="$(ssh "${ssh_config_query_args[@]}" 2>/dev/null | awk 'tolower($1) == "remotecommand" { $1=""; sub(/^ /, ""); print; exit }' || true)"
+
+  if [[ -n "$config_line" && "$config_line" != "none" ]]; then
+    return 0
+  fi
+
+  return 1
+}
+
+run_with_script() {
+  local log_file="$1"
+  local command="$2"
+
+  if command -v script >/dev/null 2>&1; then
+    if script --version >/dev/null 2>&1; then
+      script -q -a -c "$command" "$log_file"
+      return $?
+    else
+      script -q -a "$log_file" "${SHELL:-/bin/sh}" -lc "$command"
+      return $?
+    fi
+  fi
+
+  printf 'wezterm-ssh-log: script(1) is not available; running without log\n' >&2
+  "${SHELL:-/bin/sh}" -lc "$command"
+}
+
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --profile)
+      profile="${2:-}"
+      shift 2
+      ;;
+    --name)
+      name="${2:-}"
+      shift 2
+      ;;
+    --log-dir)
+      log_root="${2:-}"
+      shift 2
+      ;;
+    --no-log)
+      log_enabled=0
+      shift
+      ;;
+    --no-probe)
+      probe_enabled=0
+      shift
+      ;;
+    --)
+      shift
+      break
+      ;;
+    -h|--help)
+      usage
+      exit 0
+      ;;
+    *)
+      break
+      ;;
+  esac
+done
+
+if [[ $# -eq 0 ]]; then
+  usage >&2
+  exit 2
+fi
+
+normalized_ssh_args=()
+normalize_ssh_args "$@"
+
+if [[ "${#normalized_ssh_args[@]}" -eq 0 ]]; then
+  usage >&2
+  exit 2
+fi
+
+if [[ -z "$profile" ]]; then
+  profile="default"
+fi
+
+if [[ -z "$name" ]]; then
+  name="$(derive_target_name "${normalized_ssh_args[@]}")"
+else
+  name="$(sanitize_name "$name")"
+fi
+
+profile="$(sanitize_name "$profile")"
+
+export WEZTERM_SSH_PROFILE="$profile"
+export WEZTERM_SSH_HOST="$name"
+set_ssh_user_vars
+
+if [[ "$probe_enabled" -eq 1 ]] && ssh_args_include_config_dump "${normalized_ssh_args[@]}"; then
+  probe_enabled=0
+fi
+
+if [[ "$probe_enabled" -eq 1 ]] && ssh_config_has_remote_command "${normalized_ssh_args[@]}"; then
+  probe_enabled=0
+  printf 'SSH probe:   skipped because SSH config already defines RemoteCommand\n'
+fi
+
+ssh_command="$(build_ssh_command "${normalized_ssh_args[@]}")"
+
+if [[ "$log_enabled" -ne 1 ]]; then
+  set +e
+  "${SHELL:-/bin/sh}" -lc "$ssh_command"
+  ssh_status=$?
+  set -e
+  clear_ssh_user_vars
+  exit "$ssh_status"
+fi
+
+timestamp="$(date '+%Y%m%d-%H%M%S')"
+log_dir="$log_root/$profile/$name"
+mkdir -p "$log_dir"
+log_file="$log_dir/${timestamp}.log"
+
+printf 'SSH profile: %s\n' "$profile"
+printf 'SSH host:    %s\n' "$name"
+printf 'SSH log:     %s\n' "$log_file"
+
+set +e
+run_with_script "$log_file" "$ssh_command"
+ssh_status=$?
+set -e
+clear_ssh_user_vars
+exit "$ssh_status"
