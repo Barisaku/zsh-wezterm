@@ -40,7 +40,7 @@ local function get_clipboard_text()
   -- Windows / WSL は PowerShell の Get-Clipboard を使う。
   if wezterm.target_triple:find("windows") then
     return first_successful_command({
-      { "powershell.exe", "-NoProfile", "-Command", "Get-Clipboard -Raw" },
+      { "powershell.exe", "-NoProfile", "-Command", "[Console]::Out.Write((Get-Clipboard -Raw))" },
     })
   end
 
@@ -52,22 +52,14 @@ local function get_clipboard_text()
   })
 end
 
--- clipboard 取得コマンドが末尾に付ける改行を 1 つだけ取り除く。
--- Windows の Get-Clipboard -Raw は単語だけでも末尾改行を返すことがある。
+-- clipboard 取得コマンドが末尾に付ける改行を取り除く。
+-- Windows の Get-Clipboard -Raw と PowerShell stdout の改行が重なることがある。
 local function strip_trailing_clipboard_newline(text)
   if text == nil then
     return nil
   end
 
-  if text:sub(-2) == "\r\n" then
-    return text:sub(1, -3)
-  end
-
-  if text:sub(-1) == "\n" or text:sub(-1) == "\r" then
-    return text:sub(1, -2)
-  end
-
-  return text
+  return text:gsub("[\r\n]+$", "")
 end
 
 -- 文字列が複数行かどうかを判定する。

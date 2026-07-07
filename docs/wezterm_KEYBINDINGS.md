@@ -112,7 +112,7 @@ SSH 接続先を `config/wezterm/ssh_profiles.lua` の `M.hosts` に書くと、
 | 複数行、通常環境 | 1回確認 |
 | 複数行、`prod` SSH | 拒否 |
 
-Windows の clipboard は単語だけでも末尾改行を返すことがあるため、安全ペーストでは末尾の改行を 1 つだけ取り除きます。
+Windows の clipboard は単語だけでも末尾改行を返すことがあるため、安全ペーストでは末尾の改行を取り除きます。
 中間の改行は残すので、複数行ペースト検出はそのまま動きます。
 
 ## Copy Mode
