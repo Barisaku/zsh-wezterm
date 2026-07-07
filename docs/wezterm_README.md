@@ -96,20 +96,21 @@ type ssh
 設定を再読み込み:
 
 ```text
-Ctrl-Shift-r
+Alt-r
 ```
 
 コマンドパレット:
 
 ```text
 Cmd-p
-Ctrl-Shift-p
+Alt-p
 ```
 
 SSH launch menu:
 
 ```text
 Ctrl-q Shift-S
+```
 ```
 
 詳細は `docs/wezterm_KEYBINDINGS.md` を見てください。

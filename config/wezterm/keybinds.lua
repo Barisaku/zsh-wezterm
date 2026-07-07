@@ -172,6 +172,22 @@ local function safe_paste(window, pane)
   )
 end
 
+-- Ctrl-c 用の smart copy。
+-- 選択範囲がある時だけコピーし、選択がない時は通常の Ctrl-c を shell へ渡す。
+local function smart_copy_or_interrupt(window, pane)
+  local ok, selection = pcall(function()
+    return window:get_selection_text_for_pane(pane)
+  end)
+
+  if ok and selection ~= nil and selection ~= "" then
+    window:perform_action(act.CopyTo("Clipboard"), pane)
+    window:perform_action(act.ClearSelection, pane)
+    return
+  end
+
+  window:perform_action(act.SendKey({ key = "c", mods = "CTRL" }), pane)
+end
+
 return {
   -- 通常時のキーバインド。
   keys = {
@@ -253,6 +269,18 @@ return {
       action = act({ SpawnTab = "CurrentPaneDomain" }),
     },
     {
+      -- Windows 用 Ctrl-t: Caps Lock=Ctrl 運用で新しいタブを作る。
+      key = "t",
+      mods = "CTRL",
+      action = act({ SpawnTab = "CurrentPaneDomain" }),
+    },
+    {
+      -- Windows/Linux 用 Alt-t: Cmd-t 相当。英字キーボードの Cmd 位置に寄せる。
+      key = "t",
+      mods = "ALT",
+      action = act({ SpawnTab = "CurrentPaneDomain" }),
+    },
+    {
       -- Cmd-w: 現在のタブを確認付きで閉じる。
       key = "w",
       mods = "SUPER",
@@ -262,6 +290,12 @@ return {
       -- Windows/Linux 用 Ctrl-Shift-w: 現在のタブを確認付きで閉じる。
       key = "w",
       mods = "CTRL|SHIFT",
+      action = act({ CloseCurrentTab = { confirm = true } }),
+    },
+    {
+      -- Windows/Linux 用 Alt-w: Cmd-w 相当。英字キーボードの Cmd 位置に寄せる。
+      key = "w",
+      mods = "ALT",
       action = act({ CloseCurrentTab = { confirm = true } }),
     },
     {
@@ -283,9 +317,21 @@ return {
       action = act.CopyTo("Clipboard"),
     },
     {
+      -- Windows 用 Ctrl-c: 選択範囲ありならコピー、なしなら shell へ中断を送る。
+      key = "c",
+      mods = "CTRL",
+      action = wezterm.action_callback(smart_copy_or_interrupt),
+    },
+    {
       -- Windows/Linux 用 Ctrl-Shift-c: 選択範囲を clipboard へコピーする。
       key = "c",
       mods = "CTRL|SHIFT",
+      action = act.CopyTo("Clipboard"),
+    },
+    {
+      -- Windows/Linux 用 Alt-c: Cmd-c 相当。選択範囲を clipboard へコピーする。
+      key = "c",
+      mods = "ALT",
       action = act.CopyTo("Clipboard"),
     },
     {
@@ -295,9 +341,21 @@ return {
       action = wezterm.action_callback(safe_paste),
     },
     {
+      -- Windows 用 Ctrl-v: Caps Lock=Ctrl 運用で安全ペーストを実行する。
+      key = "v",
+      mods = "CTRL",
+      action = wezterm.action_callback(safe_paste),
+    },
+    {
       -- Ctrl-Shift-V: 安全ペーストを実行する。
       key = "v",
       mods = "CTRL|SHIFT",
+      action = wezterm.action_callback(safe_paste),
+    },
+    {
+      -- Windows/Linux 用 Alt-v: Cmd-v 相当。安全ペーストを実行する。
+      key = "v",
+      mods = "ALT",
       action = wezterm.action_callback(safe_paste),
     },
     {
@@ -349,6 +407,12 @@ return {
       action = act.PaneSelect,
     },
     {
+      -- Windows/Linux 用 Alt-[: pane 選択 UI を表示する。
+      key = "[",
+      mods = "ALT",
+      action = act.PaneSelect,
+    },
+    {
       -- Ctrl-q z: 現在 pane の zoom 表示を切り替える。
       key = "z",
       mods = "LEADER",
@@ -385,6 +449,12 @@ return {
       action = act.ActivateTab(0),
     },
     {
+      -- Windows 用 Ctrl-1: Caps Lock=Ctrl 運用で 1 番目のタブへ移動する。
+      key = "1",
+      mods = "CTRL",
+      action = act.ActivateTab(0),
+    },
+    {
       -- Cmd-2: 2 番目のタブへ移動する。
       key = "2",
       mods = "SUPER",
@@ -394,6 +464,12 @@ return {
       -- Windows/Linux 用 Alt-2: 2 番目のタブへ移動する。
       key = "2",
       mods = "ALT",
+      action = act.ActivateTab(1),
+    },
+    {
+      -- Windows 用 Ctrl-2: Caps Lock=Ctrl 運用で 2 番目のタブへ移動する。
+      key = "2",
+      mods = "CTRL",
       action = act.ActivateTab(1),
     },
     {
@@ -409,6 +485,12 @@ return {
       action = act.ActivateTab(2),
     },
     {
+      -- Windows 用 Ctrl-3: Caps Lock=Ctrl 運用で 3 番目のタブへ移動する。
+      key = "3",
+      mods = "CTRL",
+      action = act.ActivateTab(2),
+    },
+    {
       -- Cmd-4: 4 番目のタブへ移動する。
       key = "4",
       mods = "SUPER",
@@ -418,6 +500,12 @@ return {
       -- Windows/Linux 用 Alt-4: 4 番目のタブへ移動する。
       key = "4",
       mods = "ALT",
+      action = act.ActivateTab(3),
+    },
+    {
+      -- Windows 用 Ctrl-4: Caps Lock=Ctrl 運用で 4 番目のタブへ移動する。
+      key = "4",
+      mods = "CTRL",
       action = act.ActivateTab(3),
     },
     {
@@ -433,6 +521,12 @@ return {
       action = act.ActivateTab(4),
     },
     {
+      -- Windows 用 Ctrl-5: Caps Lock=Ctrl 運用で 5 番目のタブへ移動する。
+      key = "5",
+      mods = "CTRL",
+      action = act.ActivateTab(4),
+    },
+    {
       -- Cmd-6: 6 番目のタブへ移動する。
       key = "6",
       mods = "SUPER",
@@ -442,6 +536,12 @@ return {
       -- Windows/Linux 用 Alt-6: 6 番目のタブへ移動する。
       key = "6",
       mods = "ALT",
+      action = act.ActivateTab(5),
+    },
+    {
+      -- Windows 用 Ctrl-6: Caps Lock=Ctrl 運用で 6 番目のタブへ移動する。
+      key = "6",
+      mods = "CTRL",
       action = act.ActivateTab(5),
     },
     {
@@ -457,6 +557,12 @@ return {
       action = act.ActivateTab(6),
     },
     {
+      -- Windows 用 Ctrl-7: Caps Lock=Ctrl 運用で 7 番目のタブへ移動する。
+      key = "7",
+      mods = "CTRL",
+      action = act.ActivateTab(6),
+    },
+    {
       -- Cmd-8: 8 番目のタブへ移動する。
       key = "8",
       mods = "SUPER",
@@ -466,6 +572,12 @@ return {
       -- Windows/Linux 用 Alt-8: 8 番目のタブへ移動する。
       key = "8",
       mods = "ALT",
+      action = act.ActivateTab(7),
+    },
+    {
+      -- Windows 用 Ctrl-8: Caps Lock=Ctrl 運用で 8 番目のタブへ移動する。
+      key = "8",
+      mods = "CTRL",
       action = act.ActivateTab(7),
     },
     {
@@ -481,15 +593,33 @@ return {
       action = act.ActivateTab(-1),
     },
     {
+      -- Windows 用 Ctrl-9: Caps Lock=Ctrl 運用で最後のタブへ移動する。
+      key = "9",
+      mods = "CTRL",
+      action = act.ActivateTab(-1),
+    },
+    {
       -- Ctrl-Shift-p: コマンドパレットを開く。
       key = "p",
       mods = "SHIFT|CTRL",
       action = act.ActivateCommandPalette,
     },
     {
+      -- Windows/Linux 用 Alt-p: Cmd-p 相当。コマンドパレットを開く。
+      key = "p",
+      mods = "ALT",
+      action = act.ActivateCommandPalette,
+    },
+    {
       -- Ctrl-Shift-r: WezTerm 設定を再読み込みする。
       key = "r",
       mods = "SHIFT|CTRL",
+      action = act.ReloadConfiguration,
+    },
+    {
+      -- Windows/Linux 用 Alt-r: 設定を再読み込みする。
+      key = "r",
+      mods = "ALT",
       action = act.ReloadConfiguration,
     },
     {

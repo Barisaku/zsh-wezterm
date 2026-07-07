@@ -228,19 +228,27 @@ bin\install-wezterm-windows-config.cmd
 Windows 側の WezTerm が本当に新しい keybinds を読んでいるか確認:
 
 ```bat
+wezterm show-keys | findstr /i "CTRL           C"
+wezterm show-keys | findstr /i "CTRL           V"
 wezterm show-keys | findstr /i "CTRL           T"
+wezterm show-keys | findstr /i "CTRL           1"
+wezterm show-keys | findstr /i "ALT T"
+wezterm show-keys | findstr /i "ALT W"
 wezterm show-keys | findstr /i "ALT 1"
 ```
 
-WezTerm の表示では `Ctrl-Shift-t` が `CTRL T` のように出ます。
-Shift 付き英字は大文字キーとして表示されるためです。
+Windows では Caps Lock=Ctrl 運用に合わせ、`Ctrl-c` / `Ctrl-v` / `Ctrl-t` を優先して使います。
+`Ctrl-c` は選択範囲がある時だけコピーし、選択がない時は shell へ中断を送ります。
+タブ移動は `Ctrl-1..9` と `Alt-1..9` の両方で使えます。
+Alt-ime-ahk が Alt+キーを pass-through する前提で、`Alt-t` / `Alt-w` なども補助として使えます。
+`Ctrl-Shift-t` / `Ctrl-Shift-w` も保険として残しています。
 
 何も出ない場合は、WezTerm が別の設定ディレクトリを読んでいるか、コピー先が違います。
 Windows 側の実体を確認してください。
 
 ```bat
 dir "%USERPROFILE%\.config\wezterm"
-findstr /n "Ctrl-Shift-t" "%USERPROFILE%\.config\wezterm\keybinds.lua"
+findstr /n "Alt-t" "%USERPROFILE%\.config\wezterm\keybinds.lua"
 ```
 
 WezTerm を完全に終了して再起動してください。
