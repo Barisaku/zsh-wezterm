@@ -24,11 +24,12 @@ Options:
   --install-tools  Install recommended tools with brew or apt when available.
   --dry-run        Print actions without changing files.
   --force          Overwrite without asking. Existing files are still backed up.
-  --only TARGET    Install only one target: all, zsh, starship, wezterm.
+  --only TARGET    Install only one target: all, zsh, starship, wezterm, vim.
   -h, --help       Show this help.
 
 Installed config files:
   config/zsh/.zshrc              -> ~/.zshrc
+  config/vim/.vimrc              -> ~/.vimrc
   config/starship/starship.toml  -> ~/.config/starship.toml
   config/wezterm/*.lua           -> ~/.config/wezterm/*.lua
   bin/wezterm-login-shell        -> ~/bin/wezterm-login-shell
@@ -136,6 +137,7 @@ install_tools_with_brew() {
     fd \
     eza \
     bat \
+    vim \
     starship \
     pyenv \
     rbenv \
@@ -160,6 +162,7 @@ install_tools_with_apt() {
     ripgrep \
     fd-find \
     bat \
+    vim \
     xclip \
     xsel
 
@@ -256,6 +259,14 @@ post_check() {
     fi
   fi
 
+  if [ "$ONLY" = "all" ] || [ "$ONLY" = "vim" ]; then
+    if command -v vim >/dev/null 2>&1; then
+      run vim -Nu "$HOME/.vimrc" -n -es -c 'q'
+    else
+      log "vim is not installed or not in PATH."
+    fi
+  fi
+
   log ""
   log "Done. Start a new shell with:"
   log "  exec zsh"
@@ -275,7 +286,7 @@ while [ $# -gt 0 ]; do
     --only)
       ONLY="${2:-}"
       case "$ONLY" in
-        all|zsh|starship|wezterm)
+        all|zsh|starship|wezterm|vim)
           shift
           ;;
         *)
@@ -311,6 +322,11 @@ if [ "$ONLY" = "all" ] || [ "$ONLY" = "zsh" ]; then
   install_file "$CONFIG_DIR/zsh/.zshrc" "$HOME/.zshrc"
 fi
 
+if [ "$ONLY" = "all" ] || [ "$ONLY" = "vim" ]; then
+  install_file "$CONFIG_DIR/vim/.vimrc" "$HOME/.vimrc"
+  run mkdir -p "$HOME/.vimbackup"
+fi
+
 if [ "$ONLY" = "all" ] || [ "$ONLY" = "starship" ]; then
   install_file "$CONFIG_DIR/starship/starship.toml" "$HOME/.config/starship.toml"
 fi
@@ -330,7 +346,7 @@ if [ "$ONLY" = "all" ] || [ "$ONLY" = "wezterm" ]; then
     run chmod +x "$HOME/bin/wezterm-ssh-log"
   fi
 
-  for shortcut in ssh-log ssh-prod ssh-staging ssh-dev ssh-nolog ssh-noprobe; do
+  for shortcut in ssh-log ssh-prod ssh-staging ssh-lab ssh-dev ssh-nolog ssh-noprobe; do
     if [ -f "$BIN_DIR/$shortcut" ]; then
       install_file "$BIN_DIR/$shortcut" "$HOME/bin/$shortcut"
       run chmod +x "$HOME/bin/$shortcut"

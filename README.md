@@ -1,6 +1,6 @@
 # zsh setup
 
-macOS / WSL / Linux で共通利用するための zsh + Starship + WezTerm 設定です。
+macOS / WSL / Linux で共通利用するための zsh + Vim + Starship + WezTerm 設定です。
 
 fish で便利だった見た目、履歴、サジェスト、移動補助を zsh に寄せつつ、SSH は WezTerm 連携で安全に扱う方針です。
 
@@ -11,6 +11,7 @@ zsh_setup/
   install.sh
   config/
     zsh/.zshrc
+    vim/.vimrc
     starship/starship.toml
     wezterm/
       wezterm.lua
@@ -30,6 +31,7 @@ zsh_setup/
     install-wezterm-windows-config.cmd
   docs/
     zshrc_README.md
+    vim_README.md
     starship_README.md
     wezterm_README.md
     wsl_wezterm_README.md
@@ -74,6 +76,7 @@ cd zsh_setup
 
 ```sh
 ./install.sh --only zsh
+./install.sh --only vim
 ./install.sh --only starship
 ./install.sh --only wezterm
 ```
@@ -84,6 +87,7 @@ cd zsh_setup
 
 ```text
 config/zsh/.zshrc             -> ~/.zshrc
+config/vim/.vimrc             -> ~/.vimrc
 config/starship/starship.toml -> ~/.config/starship.toml
 config/wezterm/*.lua          -> ~/.config/wezterm/*.lua
 bin/wezterm-login-shell       -> ~/bin/wezterm-login-shell
@@ -95,6 +99,7 @@ bin/ssh-*                     -> ~/bin/ssh-*
 
 ```text
 ~/.zshrc.backup.YYYYMMDD-HHMMSS
+~/.vimrc.backup.YYYYMMDD-HHMMSS
 ~/.config/starship.toml.backup.YYYYMMDD-HHMMSS
 ```
 
@@ -152,6 +157,16 @@ ZSHRC_PLUGIN_MANAGER=none
 外部 plugin や command が入っていなくても起動エラーにならないよう guard しています。
 
 ## よく使う操作
+
+Vim:
+
+```text
+Esc Esc  検索結果のハイライトを消す
+:grep    grep 後に quickfix window を開く
+vim -b   xxd バイナリ編集モード
+```
+
+詳しくは [vim_README.md](docs/vim_README.md) を見てください。
 
 履歴:
 
@@ -277,6 +292,7 @@ Starship は prompt 表示担当です。
 ## ドキュメント
 
 - [zshrc_README.md](docs/zshrc_README.md): zsh の使い方
+- [vim_README.md](docs/vim_README.md): Vim 設定
 - [starship_README.md](docs/starship_README.md): Starship 設定
 - [wezterm_README.md](docs/wezterm_README.md): WezTerm 設定
 - [wezterm_KEYBINDINGS.md](docs/wezterm_KEYBINDINGS.md): WezTerm キーバインド早見表
