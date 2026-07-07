@@ -128,6 +128,28 @@ M.profiles = {
     block_multiline_paste = false,
   },
 
+  -- ラボ環境。dev より注意、staging より軽い紫系にする。
+  lab = {
+    -- 右上ステータスに出す短いラベル。
+    label = "LAB",
+    -- 右上ステータスの文字色。
+    fg = "#ffffff",
+    -- 右上ステータスの背景色。
+    bg = "#7c3aed",
+    -- 非アクティブ SSH タブの背景色。裏にある SSH を通常タブと見分けるため淡い青にする。
+    tab_bg = "#bae6fd",
+    -- アクティブ SSH タブの背景色。
+    active_tab_bg = "#8b5cf6",
+    -- 非アクティブ SSH タブの文字色。
+    tab_fg = "#082f49",
+    -- SSH 中に上書きするウィンドウ背景色。
+    window_bg = "#26133f",
+    -- SSH 中に上書きするウィンドウ背景の透明度。
+    window_opacity = 0.96,
+    -- 複数行ペーストを拒否するかどうか。
+    block_multiline_paste = false,
+  },
+
   -- 開発環境。識別しやすい青系にする。
   dev = {
     -- 右上ステータスに出す短いラベル。
@@ -211,6 +233,9 @@ M.hosts = {
   -- ステージング host の例。
   -- { label = "STG example-staging", profile = "staging", args = { "example-staging" } },
 
+  -- ラボ host の例。
+  -- { label = "LAB example-lab", profile = "lab", args = { "example-lab" } },
+
   -- 開発 host の例。
   -- { label = "DEV example-dev", profile = "dev", args = { "example-dev" } },
 }
@@ -225,7 +250,7 @@ function M.detect(pane)
   -- wezterm-ssh-log が送った user vars を読む。
   local vars = pane:get_user_vars()
 
-  -- SSH profile。prod / staging / dev / default など。
+  -- SSH profile。prod / staging / lab / dev / default など。
   local profile = vars.WEZTERM_SSH_PROFILE
 
   -- SSH 接続先表示名。

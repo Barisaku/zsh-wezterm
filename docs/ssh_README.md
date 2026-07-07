@@ -17,6 +17,7 @@ ssh
 ssh-log
 ssh-prod
 ssh-staging
+ssh-lab
 ssh-dev
 ```
 
@@ -49,8 +50,59 @@ ssh-log --profile prod -- example-prod
 ```sh
 ssh-prod example-prod
 ssh-staging example-staging
+ssh-lab example-lab
 ssh-dev example-dev
 ```
+
+## ssh config Host 名から profile を自動判定
+
+zsh では通常の `ssh` も wrapper 経由です。
+そのため、`~/.ssh/config` の `Host` 名に規約を付けると、`ssh host` だけで profile を自動選択できます。
+
+本番扱いになる例:
+
+```sshconfig
+Host prod-db01
+  HostName 192.0.2.10
+  User app
+
+Host db01-prod
+  HostName 192.0.2.11
+  User app
+```
+
+この場合:
+
+```sh
+ssh prod-db01
+ssh db01-prod
+```
+
+は内部的に次と同じ profile で動きます。
+
+```sh
+wezterm-ssh-log --profile prod ...
+```
+
+デフォルトの判定:
+
+```text
+prod:     prod-* / *-prod / *.prod / production-* / *-production
+staging:  stg-* / *-stg / staging-* / *-staging / *.stg / *.staging
+lab:      lab-* / *-lab / *.lab
+dev:      dev-* / *-dev / *.dev
+```
+
+追加したい場合は `~/.zshrc.local` に書きます。
+
+```zsh
+ZSHRC_SSH_PROD_PATTERNS+=(core-db bastion-prod *.critical)
+ZSHRC_SSH_STAGING_PATTERNS+=(qa-* *-qa)
+ZSHRC_SSH_LAB_PATTERNS+=(lab-bastion sandbox-*)
+```
+
+`~/.ssh/config` だけでローカルの `ssh-prod` コマンドを直接呼ぶことは基本できません。
+Host 名規約を zsh wrapper が読む方式にしています。
 
 user や port を指定:
 

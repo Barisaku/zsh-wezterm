@@ -24,7 +24,7 @@ config/wezterm/
 - profile ごとにタブ色を変更
 - 背景変更時に文字色、ANSI 色、カーソル色、選択色も合わせて変更
 - `prod` profile では複数行ペーストを拒否
-- `staging` / `dev` / ローカルでは複数行ペーストを1回確認
+- `staging` / `lab` / `dev` / ローカルでは複数行ペーストを1回確認
 - zsh では通常の `ssh` も wrapper 経由にする
 - `vagrant ssh` は Vagrant 専用 profile 色で wrapper 経由にする
 - zsh / fish / bash など、shell に依存しない `ssh-prod` などの実行ファイルを提供
@@ -123,6 +123,7 @@ zsh では通常の `ssh` も wrapper 経由です。
 ssh example-prod
 ssh-prod -- -p 22 alice@example-prod
 ssh-staging example-staging
+ssh-lab example-lab
 ssh-dev example-dev
 ```
 
@@ -149,7 +150,7 @@ vagrant ssh default
 
 ## 背景色
 
-`ssh` / `ssh-prod` / `ssh-staging` / `ssh-dev` / `ssh-log` / `vagrant ssh` から入った SSH は、WezTerm の右上表示、背景色、タブ色が profile に合わせて変わります。
+`ssh` / `ssh-prod` / `ssh-staging` / `ssh-lab` / `ssh-dev` / `ssh-log` / `vagrant ssh` から入った SSH は、WezTerm の右上表示、背景色、タブ色が profile に合わせて変わります。
 
 通常の `ssh host` も、WezTerm が foreground process を `ssh` として検出できる間は generic SSH 色に変えます。
 接続先名や本番扱いを確実に出したい場合は `ssh-prod` などを使ってください。
@@ -197,7 +198,7 @@ Ctrl-q Shift-S
 拒否
 ```
 
-`staging` / `dev` / ローカル:
+`staging` / `lab` / `dev` / ローカル:
 
 ```text
 1回確認

@@ -20,6 +20,7 @@ zsh_setup/
     ssh-log
     ssh-prod
     ssh-staging
+    ssh-lab
     ssh-dev
     ssh-nolog
     ssh-noprobe
@@ -206,11 +207,15 @@ ssh example-prod
 ssh-log example-prod
 ssh-prod example-prod
 ssh-staging example-staging
+ssh-lab example-lab
 ssh-dev example-dev
 ssh-nolog example-dev
 ssh-noprobe example-dev
 vagrant ssh
 ```
+
+Host 名が `prod-*` / `*-prod` / `*.prod` などに一致する場合、通常の `ssh host` でも自動で `prod` profile になります。
+`lab-*` / `*-lab` / `*.lab` は `lab` profile になり、`dev` と `staging` の中間の注意度として扱います。
 
 ログ保存先:
 

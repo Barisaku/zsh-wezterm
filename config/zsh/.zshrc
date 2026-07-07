@@ -838,6 +838,30 @@ ZSHRC_WRAP_VAGRANT_SSH_WITH_WEZTERM="${ZSHRC_WRAP_VAGRANT_SSH_WITH_WEZTERM:-1}"
 export WEZTERM_SSH_LOG_DIR="${WEZTERM_SSH_LOG_DIR:-$HOME/.local/share/wezterm/ssh-logs}"
 export LESSCHARSET="${LESSCHARSET:-utf-8}"
 
+# ssh config の Host 名規約から WezTerm SSH profile を自動判定する。
+# 例: Host prod-db01 / db01-prod / app.prod は prod profile になる。
+# 追加したい場合は ~/.zshrc.local で配列を上書きまたは追記する。
+typeset -ga ZSHRC_SSH_PROD_PATTERNS
+typeset -ga ZSHRC_SSH_STAGING_PATTERNS
+typeset -ga ZSHRC_SSH_LAB_PATTERNS
+typeset -ga ZSHRC_SSH_DEV_PATTERNS
+
+if (( ${#ZSHRC_SSH_PROD_PATTERNS[@]} == 0 )); then
+  ZSHRC_SSH_PROD_PATTERNS=('prod-*' '*-prod' '*.prod' 'production-*' '*-production')
+fi
+
+if (( ${#ZSHRC_SSH_STAGING_PATTERNS[@]} == 0 )); then
+  ZSHRC_SSH_STAGING_PATTERNS=('stg-*' '*-stg' 'staging-*' '*-staging' '*.stg' '*.staging')
+fi
+
+if (( ${#ZSHRC_SSH_LAB_PATTERNS[@]} == 0 )); then
+  ZSHRC_SSH_LAB_PATTERNS=('lab-*' '*-lab' '*.lab')
+fi
+
+if (( ${#ZSHRC_SSH_DEV_PATTERNS[@]} == 0 )); then
+  ZSHRC_SSH_DEV_PATTERNS=('dev-*' '*-dev' '*.dev')
+fi
+
 function ssh-log() {
   if ! command -v wezterm-ssh-log >/dev/null 2>&1; then
     echo "ssh-log: wezterm-ssh-log is not installed in PATH" >&2
@@ -855,6 +879,10 @@ function ssh-staging() {
   ssh-log --profile staging "$@"
 }
 
+function ssh-lab() {
+  ssh-log --profile lab "$@"
+}
+
 function ssh-dev() {
   ssh-log --profile dev "$@"
 }
@@ -865,6 +893,90 @@ function ssh-nolog() {
 
 function ssh-noprobe() {
   ssh-log --no-probe "$@"
+}
+
+function zshrc_ssh_option_takes_value() {
+  case "$1" in
+    -b|-c|-D|-E|-e|-F|-I|-i|-J|-L|-l|-m|-O|-o|-p|-Q|-R|-S|-W|-w)
+      return 0
+      ;;
+    *)
+      return 1
+      ;;
+  esac
+}
+
+function zshrc_ssh_find_target() {
+  local arg
+  local skip_next=0
+
+  for arg in "$@"; do
+    if [[ "$skip_next" -eq 1 ]]; then
+      skip_next=0
+      continue
+    fi
+
+    case "$arg" in
+      --)
+        continue
+        ;;
+      -*)
+        if zshrc_ssh_option_takes_value "$arg"; then
+          skip_next=1
+        fi
+        ;;
+      *)
+        print -r -- "$arg"
+        return 0
+        ;;
+    esac
+  done
+}
+
+function zshrc_ssh_target_matches_patterns() {
+  local target="$1"
+  shift
+
+  local pattern
+  for pattern in "$@"; do
+    if [[ "$target" == ${~pattern} ]]; then
+      return 0
+    fi
+  done
+
+  return 1
+}
+
+function zshrc_ssh_profile_for_args() {
+  local target
+  target="$(zshrc_ssh_find_target "$@")"
+
+  if [[ -z "$target" ]]; then
+    print -r -- default
+    return 0
+  fi
+
+  if zshrc_ssh_target_matches_patterns "$target" "${ZSHRC_SSH_PROD_PATTERNS[@]}"; then
+    print -r -- prod
+    return 0
+  fi
+
+  if zshrc_ssh_target_matches_patterns "$target" "${ZSHRC_SSH_STAGING_PATTERNS[@]}"; then
+    print -r -- staging
+    return 0
+  fi
+
+  if zshrc_ssh_target_matches_patterns "$target" "${ZSHRC_SSH_LAB_PATTERNS[@]}"; then
+    print -r -- lab
+    return 0
+  fi
+
+  if zshrc_ssh_target_matches_patterns "$target" "${ZSHRC_SSH_DEV_PATTERNS[@]}"; then
+    print -r -- dev
+    return 0
+  fi
+
+  print -r -- default
 }
 
 function ssh-log-latest() {
@@ -921,12 +1033,15 @@ alias slog-clean='ssh-log-clean'
 
 if [ "$ZSHRC_WRAP_SSH_WITH_WEZTERM" = "1" ]; then
   function ssh() {
+    local ssh_profile
+
     if ! command -v wezterm-ssh-log >/dev/null 2>&1; then
       command ssh "$@"
       return $?
     fi
 
-    wezterm-ssh-log --profile default "$@"
+    ssh_profile="$(zshrc_ssh_profile_for_args "$@")"
+    wezterm-ssh-log --profile "$ssh_profile" "$@"
   }
 fi
 

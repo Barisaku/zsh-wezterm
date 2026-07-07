@@ -155,6 +155,7 @@ SSH wrapper やログ保存は WSL 側の `~/bin` に入ります。
 ```sh
 ssh example
 ssh-prod example
+ssh-lab example
 slog
 ```
 

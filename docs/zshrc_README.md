@@ -248,10 +248,21 @@ ssh example-dev
 ssh-log example-prod
 ssh-prod example-prod
 ssh-staging example-staging
+ssh-lab example-lab
 ssh-dev example-dev
 ```
 
 `ssh` / `ssh-log` は `wezterm-ssh-log` を呼び出します。`wezterm-ssh-log` が PATH にない場合は、通常の `ssh` に fallback します。
+
+`ssh prod-db01` のように Host 名が `prod-*` / `*-prod` / `*.prod` に一致する場合は、自動で `prod` profile になります。
+staging / lab / dev も同様に Host 名規約で判定します。
+判定順は `prod > staging > lab > dev > default` です。
+
+```zsh
+ZSHRC_SSH_PROD_PATTERNS+=(bastion-prod *.critical)
+ZSHRC_SSH_STAGING_PATTERNS+=(qa-* *-qa)
+ZSHRC_SSH_LAB_PATTERNS+=(lab-bastion sandbox-*)
+```
 
 ログ保存先:
 

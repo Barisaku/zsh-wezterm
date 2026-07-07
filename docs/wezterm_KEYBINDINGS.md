@@ -179,6 +179,7 @@ WezTerm のキーではなく shell command ですが、この設定の重要機
 | `ssh-log example-host` | SSH ログ保存 + 入室時確認 |
 | `ssh-prod example-host` | 本番 profile。背景色変更、右上表示、複数行ペースト拒否 |
 | `ssh-staging example-host` | staging profile |
+| `ssh-lab example-host` | lab profile。dev と staging の中間の注意度 |
 | `ssh-dev example-host` | dev profile |
 | `ssh-nolog example-host` | ログ保存なし |
 | `ssh-noprobe example-host` | `id && date && uname -n` なし |
