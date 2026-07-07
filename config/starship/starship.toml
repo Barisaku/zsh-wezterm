@@ -6,7 +6,9 @@
 
 add_newline = true
 command_timeout = 1000
-scan_timeout = 30
+# タブを一気に開いた時に current directory scan が詰まりすぎない程度に待つ。
+# 低すぎると "Scanning current directory timed out" が出やすい。
+scan_timeout = 100
 palette = "main"
 
 format = """
