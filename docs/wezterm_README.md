@@ -156,6 +156,9 @@ vagrant ssh default
 タブ切替を軽くするため、wrapper なしの素の `/usr/bin/ssh` を前面プロセス名から推測する fallback はデフォルトで無効です。
 必要な場合だけ `WEZTERM_ENABLE_PLAIN_SSH_DETECTION=1` を設定してください。
 
+SSH profile ごとの上書きは、サーバー取り違え防止に効く背景色を中心にしています。
+透明度と macOS の背景ぼかしは profile ごとに切り替えず、通常設定に任せます。
+
 SSH 接続が失敗した時、または SSH から抜けた時は、wrapper が WezTerm の SSH 表示用変数を消します。
 これにより背景色と右上表示はローカル状態へ戻ります。
 

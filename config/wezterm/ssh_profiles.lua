@@ -105,8 +105,6 @@ M.profiles = {
     tab_fg = "#082f49",
     -- SSH 中に上書きするウィンドウ背景色。
     window_bg = "#3b1113",
-    -- SSH 中に上書きするウィンドウ背景の透明度。
-    window_opacity = 0.96,
     -- 複数行ペーストを拒否するかどうか。
     block_multiline_paste = true,
   },
@@ -127,8 +125,6 @@ M.profiles = {
     tab_fg = "#082f49",
     -- SSH 中に上書きするウィンドウ背景色。
     window_bg = "#342606",
-    -- SSH 中に上書きするウィンドウ背景の透明度。
-    window_opacity = 0.96,
     -- 複数行ペーストを拒否するかどうか。
     block_multiline_paste = false,
   },
@@ -149,8 +145,6 @@ M.profiles = {
     tab_fg = "#082f49",
     -- SSH 中に上書きするウィンドウ背景色。
     window_bg = "#26133f",
-    -- SSH 中に上書きするウィンドウ背景の透明度。
-    window_opacity = 0.96,
     -- 複数行ペーストを拒否するかどうか。
     block_multiline_paste = false,
   },
@@ -171,8 +165,6 @@ M.profiles = {
     tab_fg = "#082f49",
     -- SSH 中に上書きするウィンドウ背景色。
     window_bg = "#06263a",
-    -- SSH 中に上書きするウィンドウ背景の透明度。
-    window_opacity = 0.96,
     -- 複数行ペーストを拒否するかどうか。
     block_multiline_paste = false,
   },
@@ -193,8 +185,6 @@ M.profiles = {
     tab_fg = "#082f49",
     -- SSH 中に上書きするウィンドウ背景色。
     window_bg = "#1e2930",
-    -- SSH 中に上書きするウィンドウ背景の透明度。
-    window_opacity = 0.94,
     -- 複数行ペーストを拒否するかどうか。
     block_multiline_paste = false,
   },
@@ -215,8 +205,6 @@ M.profiles = {
     tab_fg = "#052e16",
     -- SSH 中に上書きするウィンドウ背景色。
     window_bg = "#0f2f1d",
-    -- SSH 中に上書きするウィンドウ背景の透明度。
-    window_opacity = 0.95,
     -- 複数行ペーストを拒否するかどうか。
     block_multiline_paste = false,
   },
@@ -323,7 +311,6 @@ local function override_state_key(info)
     "ssh",
     info.profile or "default",
     info.config.window_bg or "",
-    tostring(info.config.window_opacity or 0.96),
   }, "|")
 end
 
@@ -371,18 +358,12 @@ function M.apply_window_overrides(window, pane)
   -- SSH でない時は SSH 用の背景上書きを解除する。
   if info == nil then
     overrides.window_background_gradient = nil
-    overrides.window_background_opacity = nil
-    overrides.macos_window_background_blur = nil
     overrides.colors = nil
   else
     -- SSH 中は profile ごとの背景色を適用する。
     overrides.window_background_gradient = {
       colors = { info.config.window_bg },
     }
-    -- 背景画像やデスクトップの透け方で色が薄く見えないようにする。
-    overrides.window_background_opacity = info.config.window_opacity or 0.96
-    -- SSH 中は背景ぼかしを弱め、profile 色を見分けやすくする。
-    overrides.macos_window_background_blur = 0
     -- SSH 中は背景色に合わせて文字色や ANSI 色も読みやすい配色へ固定する。
     overrides.colors = readable_terminal_colors
   end

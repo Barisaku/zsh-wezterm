@@ -29,6 +29,7 @@ ssh-dev
 - WezTerm 側に渡すための環境変数をセット
 - SSH 終了後や接続失敗後に WezTerm 側の SSH 表示を解除
 - WezTerm の背景色、タブ色、右上表示を SSH profile に合わせる
+- 背景の透明度や macOS のぼかしは profile ごとに切り替えず、タブ切替時の負荷を抑える
 
 ## タブ移動の軽さ
 
