@@ -451,6 +451,21 @@ bindkey -M vicmd '^[[1~' beginning-of-line
 bindkey -M vicmd '^[[4~' end-of-line
 bindkey -M vicmd '^[[3~' delete-char
 
+# Emacs 風の基本移動/編集キー。
+# vi mode でも insert mode 中は Ctrl-a/e などを使えるように明示する。
+for zshrc_keymap in emacs viins vicmd; do
+  bindkey -M "$zshrc_keymap" '^A' beginning-of-line
+  bindkey -M "$zshrc_keymap" '^E' end-of-line
+  bindkey -M "$zshrc_keymap" '^F' forward-char
+  bindkey -M "$zshrc_keymap" '^B' backward-char
+  bindkey -M "$zshrc_keymap" '^U' backward-kill-line
+  bindkey -M "$zshrc_keymap" '^K' kill-line
+  bindkey -M "$zshrc_keymap" '^W' backward-kill-word
+  bindkey -M "$zshrc_keymap" '^Y' yank
+  bindkey -M "$zshrc_keymap" '^L' clear-screen
+done
+unset zshrc_keymap
+
 # 入力済み文字列から始まる履歴を検索する。
 autoload -Uz history-search-end
 zle -N history-beginning-search-backward-end history-search-end

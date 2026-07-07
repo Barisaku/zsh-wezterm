@@ -96,6 +96,24 @@ fzf がない環境では、zsh 標準の履歴検索に fallback します。
 
 対応ターミナルでは、insert mode は細いカーソル、command mode はブロックカーソルになります。
 
+## コマンドライン編集
+
+vi mode ですが、insert mode 中は Emacs 風の基本キーも使えるようにしています。
+
+```text
+Ctrl-a  行頭へ移動
+Ctrl-e  行末へ移動
+Ctrl-b  1文字左へ移動
+Ctrl-f  1文字右へ移動。ただし autosuggestion 表示中は候補確定
+Ctrl-u  カーソルより左を削除
+Ctrl-k  カーソルより右を削除
+Ctrl-w  カーソル左の単語を削除
+Ctrl-y  削除した内容を貼り戻す
+Ctrl-l  画面クリア
+```
+
+Mac / Windows / WSL で挙動がずれないよう、`emacs` / `viins` / `vicmd` の各 keymap に明示しています。
+
 ## 補完
 
 Tab 補完はメニュー選択できます。
