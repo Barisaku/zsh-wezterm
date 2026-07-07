@@ -9,6 +9,11 @@ local last_override_state_by_window = {}
 -- HOME が取れない環境では WezTerm の home_dir を使う。
 local home = os.getenv("HOME") or wezterm.home_dir
 
+-- wrapper なしの素の ssh を前面プロセス名で検出するかどうか。
+-- get_foreground_process_name() はタブ切替時の体感速度に響くことがあるため、
+-- 通常は zsh/fish/bash 共通の wezterm-ssh-log wrapper が送る user vars だけを見る。
+local enable_plain_ssh_detection = os.getenv("WEZTERM_ENABLE_PLAIN_SSH_DETECTION") == "1"
+
 -- フルパスからコマンド名だけを取り出す。
 local function basename(path)
   if path == nil or path == "" then
@@ -256,9 +261,14 @@ function M.detect(pane)
   -- SSH 接続先表示名。
   local host = vars.WEZTERM_SSH_HOST
 
-  -- wrapper 経由でない場合は、前面プロセス名から普通の ssh を検出する。
+  -- wrapper 経由でない場合は、通常は SSH 扱いしない。
+  -- WEZTERM_ENABLE_PLAIN_SSH_DETECTION=1 の時だけ前面プロセス名から普通の ssh を検出する。
   if profile == nil or profile == "" then
-    return plain_ssh_info(pane)
+    if enable_plain_ssh_detection then
+      return plain_ssh_info(pane)
+    end
+
+    return nil
   end
 
   -- host が取れない場合でも表示が壊れないよう unknown にする。

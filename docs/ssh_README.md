@@ -30,6 +30,17 @@ ssh-dev
 - SSH 終了後や接続失敗後に WezTerm 側の SSH 表示を解除
 - WezTerm の背景色、タブ色、右上表示を SSH profile に合わせる
 
+## タブ移動の軽さ
+
+WezTerm 側は `wezterm-ssh-log` が送る user vars を見て SSH profile を判定します。
+タブ切替を軽くするため、wrapper なしの素の `/usr/bin/ssh` を前面プロセス名から推測する fallback はデフォルトで無効です。
+
+どうしても wrapper なし SSH も generic SSH 色にしたい場合だけ、WezTerm 起動前の環境で次を設定します。
+
+```sh
+export WEZTERM_ENABLE_PLAIN_SSH_DETECTION=1
+```
+
 ## 使い方
 
 標準:

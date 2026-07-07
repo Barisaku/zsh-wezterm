@@ -152,8 +152,9 @@ vagrant ssh default
 
 `ssh` / `ssh-prod` / `ssh-staging` / `ssh-lab` / `ssh-dev` / `ssh-log` / `vagrant ssh` から入った SSH は、WezTerm の右上表示、背景色、タブ色が profile に合わせて変わります。
 
-通常の `ssh host` も、WezTerm が foreground process を `ssh` として検出できる間は generic SSH 色に変えます。
-接続先名や本番扱いを確実に出したい場合は `ssh-prod` などを使ってください。
+通常の `ssh host` は zsh 側の wrapper により profile 判定されます。
+タブ切替を軽くするため、wrapper なしの素の `/usr/bin/ssh` を前面プロセス名から推測する fallback はデフォルトで無効です。
+必要な場合だけ `WEZTERM_ENABLE_PLAIN_SSH_DETECTION=1` を設定してください。
 
 SSH 接続が失敗した時、または SSH から抜けた時は、wrapper が WezTerm の SSH 表示用変数を消します。
 これにより背景色と右上表示はローカル状態へ戻ります。
