@@ -64,11 +64,21 @@ wsl -e sh -lc "cd ~/outputs/zsh_setup && sh bin/install-wezterm-windows-config"
 
 Windows 上で WezTerm が動いている場合、この設定は WSL domain を自動検出して `default_domain` にします。
 これにより、起動時の既定 shell が `cmd.exe` ではなく WSL になります。
+WSL domain では zsh を優先して起動し、zsh がまだない場合だけ bash に fallback します。
 
 複数の WSL distro がある場合は、Windows 側で優先 distro を指定できます。
 
 ```powershell
 setx WEZTERM_WSL_DISTRO Ubuntu
+```
+
+SSH ログ保存や背景変更は WSL 側の `.zshrc` と `~/bin/wezterm-ssh-log` が必要です。
+Windows 側に WezTerm config を入れた後、WSL 側でも次を実行してください。
+
+```sh
+cd outputs/zsh_setup
+./install.sh
+exec zsh
 ```
 
 ## 基本操作

@@ -18,6 +18,14 @@ Windows 版 WezTerm は Windows 側で動くアプリです。
 config.default_domain = "WSL:Ubuntu"
 ```
 
+WSL domain 起動時は zsh を優先します。
+zsh がまだ入っていない初回だけ bash に fallback します。
+
+```text
+zsh がある: zsh -l
+zsh がない: bash -l
+```
+
 実際の distro 名は自動検出します。
 複数の WSL distro がある場合は、環境変数 `WEZTERM_WSL_DISTRO` で優先 distro を指定できます。
 
@@ -74,6 +82,9 @@ exec zsh
 ```sh
 ./install.sh
 ```
+
+SSH の背景変更、タブ色、右上表示、ログ保存は WSL 側の `.zshrc` と `~/bin/wezterm-ssh-log` に依存します。
+そのため、Windows 側の WezTerm config だけでなく、WSL 側でも `./install.sh` を実行してください。
 
 ## Windows 側の WezTerm config を入れる
 
@@ -147,6 +158,32 @@ slog
 
 Windows 側の launch menu から SSH を直接起動するより、WSL を開いてから SSH する方が path、key、config、log の扱いが揃います。
 
+WSL タブで次を確認できます。
+
+```sh
+echo "$SHELL"
+command -v zsh
+command -v wezterm-ssh-log
+type ssh
+echo "$WEZTERM_PANE"
+```
+
+期待値:
+
+```text
+zsh が使われている
+wezterm-ssh-log が見つかる
+ssh is a shell function と表示される
+WEZTERM_PANE が空ではない
+```
+
+この状態で `ssh host` すると、ログ保存と WezTerm の SSH 表示用 user var が動きます。
+ログは WSL 側の次に保存されます。
+
+```text
+~/.local/share/wezterm/ssh-logs/
+```
+
 ## トラブルシュート
 
 まだ `cmd.exe` が開く:
@@ -177,6 +214,20 @@ bin\install-wezterm-windows-config.cmd
 ```
 
 WezTerm を完全に終了して再起動してください。
+
+SSH の背景色やログ保存が動かない:
+
+```sh
+cd outputs/zsh_setup
+./install.sh
+exec zsh
+command -v wezterm-ssh-log
+type ssh
+echo "$WEZTERM_PANE"
+```
+
+`type ssh` が `ssh is a shell function` にならない場合は、zsh ではなく bash が起動しているか、`.zshrc` が入っていません。
+`WEZTERM_PANE` が空の場合は、WezTerm 以外の端末、または WezTerm から WSL に入れていない状態です。
 
 別 distro を使いたい:
 

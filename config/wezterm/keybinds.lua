@@ -232,9 +232,21 @@ return {
       action = act({ SpawnTab = "CurrentPaneDomain" }),
     },
     {
+      -- Windows/Linux 用 Ctrl-Shift-t: 現在と同じ domain で新しいタブを作る。
+      key = "T",
+      mods = "CTRL|SHIFT",
+      action = act({ SpawnTab = "CurrentPaneDomain" }),
+    },
+    {
       -- Cmd-w: 現在のタブを確認付きで閉じる。
       key = "w",
       mods = "SUPER",
+      action = act({ CloseCurrentTab = { confirm = true } }),
+    },
+    {
+      -- Windows/Linux 用 Ctrl-Shift-w: 現在のタブを確認付きで閉じる。
+      key = "W",
+      mods = "CTRL|SHIFT",
       action = act({ CloseCurrentTab = { confirm = true } }),
     },
     {
@@ -253,6 +265,12 @@ return {
       -- Cmd-c: 選択範囲を clipboard へコピーする。
       key = "c",
       mods = "SUPER",
+      action = act.CopyTo("Clipboard"),
+    },
+    {
+      -- Windows/Linux 用 Ctrl-Shift-c: 選択範囲を clipboard へコピーする。
+      key = "C",
+      mods = "CTRL|SHIFT",
       action = act.CopyTo("Clipboard"),
     },
     {
@@ -346,9 +364,21 @@ return {
       action = act.ActivateTab(0),
     },
     {
+      -- Windows/Linux 用 Alt-1: 1 番目のタブへ移動する。
+      key = "1",
+      mods = "ALT",
+      action = act.ActivateTab(0),
+    },
+    {
       -- Cmd-2: 2 番目のタブへ移動する。
       key = "2",
       mods = "SUPER",
+      action = act.ActivateTab(1),
+    },
+    {
+      -- Windows/Linux 用 Alt-2: 2 番目のタブへ移動する。
+      key = "2",
+      mods = "ALT",
       action = act.ActivateTab(1),
     },
     {
@@ -358,9 +388,21 @@ return {
       action = act.ActivateTab(2),
     },
     {
+      -- Windows/Linux 用 Alt-3: 3 番目のタブへ移動する。
+      key = "3",
+      mods = "ALT",
+      action = act.ActivateTab(2),
+    },
+    {
       -- Cmd-4: 4 番目のタブへ移動する。
       key = "4",
       mods = "SUPER",
+      action = act.ActivateTab(3),
+    },
+    {
+      -- Windows/Linux 用 Alt-4: 4 番目のタブへ移動する。
+      key = "4",
+      mods = "ALT",
       action = act.ActivateTab(3),
     },
     {
@@ -370,9 +412,21 @@ return {
       action = act.ActivateTab(4),
     },
     {
+      -- Windows/Linux 用 Alt-5: 5 番目のタブへ移動する。
+      key = "5",
+      mods = "ALT",
+      action = act.ActivateTab(4),
+    },
+    {
       -- Cmd-6: 6 番目のタブへ移動する。
       key = "6",
       mods = "SUPER",
+      action = act.ActivateTab(5),
+    },
+    {
+      -- Windows/Linux 用 Alt-6: 6 番目のタブへ移動する。
+      key = "6",
+      mods = "ALT",
       action = act.ActivateTab(5),
     },
     {
@@ -382,15 +436,33 @@ return {
       action = act.ActivateTab(6),
     },
     {
+      -- Windows/Linux 用 Alt-7: 7 番目のタブへ移動する。
+      key = "7",
+      mods = "ALT",
+      action = act.ActivateTab(6),
+    },
+    {
       -- Cmd-8: 8 番目のタブへ移動する。
       key = "8",
       mods = "SUPER",
       action = act.ActivateTab(7),
     },
     {
+      -- Windows/Linux 用 Alt-8: 8 番目のタブへ移動する。
+      key = "8",
+      mods = "ALT",
+      action = act.ActivateTab(7),
+    },
+    {
       -- Cmd-9: 最後のタブへ移動する。
       key = "9",
       mods = "SUPER",
+      action = act.ActivateTab(-1),
+    },
+    {
+      -- Windows/Linux 用 Alt-9: 最後のタブへ移動する。
+      key = "9",
+      mods = "ALT",
       action = act.ActivateTab(-1),
     },
     {

@@ -31,6 +31,19 @@ local function get_wsl_domains()
 
   local ok, domains = pcall(wezterm.default_wsl_domains)
   if ok and type(domains) == "table" then
+    for _, domain in ipairs(domains) do
+      -- Windows 版 WezTerm から WSL を開く時も zsh を優先する。
+      -- zsh がまだ入っていない初回環境では bash login shell に fallback する。
+      domain.default_prog = {
+        "bash",
+        "-lc",
+        "if command -v zsh >/dev/null 2>&1; then exec zsh -l; else exec bash -l; fi",
+      }
+
+      -- WSL 起動時の既定ディレクトリ。
+      domain.default_cwd = "~"
+    end
+
     return domains
   end
 
@@ -96,6 +109,11 @@ local wsl_domains = get_wsl_domains()
 
 -- Windows 上で既定にする WSL domain。
 local default_wsl_domain = select_default_wsl_domain(wsl_domains)
+
+if is_windows and #wsl_domains > 0 then
+  -- default_wsl_domains() で得た設定に zsh 起動設定を足して WezTerm へ戻す。
+  config.wsl_domains = wsl_domains
+end
 
 ----------------------------------------------------
 -- 起動と見た目
