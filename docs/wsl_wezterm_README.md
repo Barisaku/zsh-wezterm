@@ -224,6 +224,21 @@ cd path\to\outputs\zsh_setup
 bin\install-wezterm-windows-config.cmd
 ```
 
+Windows 側の WezTerm が本当に新しい keybinds を読んでいるか確認:
+
+```bat
+wezterm show-keys | findstr /i "CTRL SHIFT t"
+wezterm show-keys | findstr /i "ALT 1"
+```
+
+何も出ない場合は、WezTerm が別の設定ディレクトリを読んでいるか、コピー先が違います。
+Windows 側の実体を確認してください。
+
+```bat
+dir "%USERPROFILE%\.config\wezterm"
+findstr /n "Ctrl-Shift-t" "%USERPROFILE%\.config\wezterm\keybinds.lua"
+```
+
 WezTerm を完全に終了して再起動してください。
 
 SSH の背景色やログ保存が動かない:

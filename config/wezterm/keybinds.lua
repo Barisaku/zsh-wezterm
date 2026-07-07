@@ -233,7 +233,7 @@ return {
     },
     {
       -- Windows/Linux 用 Ctrl-Shift-t: 現在と同じ domain で新しいタブを作る。
-      key = "T",
+      key = "t",
       mods = "CTRL|SHIFT",
       action = act({ SpawnTab = "CurrentPaneDomain" }),
     },
@@ -245,7 +245,7 @@ return {
     },
     {
       -- Windows/Linux 用 Ctrl-Shift-w: 現在のタブを確認付きで閉じる。
-      key = "W",
+      key = "w",
       mods = "CTRL|SHIFT",
       action = act({ CloseCurrentTab = { confirm = true } }),
     },
@@ -269,7 +269,7 @@ return {
     },
     {
       -- Windows/Linux 用 Ctrl-Shift-c: 選択範囲を clipboard へコピーする。
-      key = "C",
+      key = "c",
       mods = "CTRL|SHIFT",
       action = act.CopyTo("Clipboard"),
     },
@@ -281,7 +281,7 @@ return {
     },
     {
       -- Ctrl-Shift-V: 安全ペーストを実行する。
-      key = "V",
+      key = "v",
       mods = "CTRL|SHIFT",
       action = wezterm.action_callback(safe_paste),
     },

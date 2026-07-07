@@ -202,3 +202,13 @@ Lua 形式で見る場合:
 ```sh
 wezterm show-keys --lua
 ```
+
+Windows で設定が反映されているか確認する場合:
+
+```bat
+wezterm show-keys | findstr /i "CTRL SHIFT t"
+wezterm show-keys | findstr /i "CTRL SHIFT w"
+wezterm show-keys | findstr /i "ALT 1"
+```
+
+何も出ない場合は、Windows 側の `%USERPROFILE%\.config\wezterm\keybinds.lua` が古いか、WezTerm が別の config を読んでいます。
