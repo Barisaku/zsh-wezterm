@@ -154,8 +154,9 @@ if command -v rbenv >/dev/null 2>&1; then
 fi
 
 # ここから下は補完・履歴・ZLE・prompt などの対話シェル用設定。
-# 非TTYで source された場合は、警告や副作用を避けるためここで止める。
-if [[ ! -t 0 || ! -t 1 ]]; then
+# `zsh -i -c ...` や一部の端末 wrapper では stdin/stdout が TTY でない場合がある。
+# TTY 有無ではなく zsh の interactive 状態で判定し、SSH helper が読み飛ばされないようにする。
+if [[ ! -o interactive ]]; then
   return 0 2>/dev/null || true
 fi
 
