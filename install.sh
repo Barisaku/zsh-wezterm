@@ -34,6 +34,7 @@ Installed config files:
   config/wezterm/*.lua           -> ~/.config/wezterm/*.lua
   bin/wezterm-login-shell        -> ~/bin/wezterm-login-shell
   bin/wezterm-ssh-log            -> ~/bin/wezterm-ssh-log
+  bin/cleanup-install-backups    -> ~/bin/cleanup-install-backups
   bin/ssh-*                      -> ~/bin/ssh-*
 
 Notes:
@@ -344,6 +345,11 @@ if [ "$ONLY" = "all" ] || [ "$ONLY" = "wezterm" ]; then
   if [ -f "$BIN_DIR/wezterm-ssh-log" ]; then
     install_file "$BIN_DIR/wezterm-ssh-log" "$HOME/bin/wezterm-ssh-log"
     run chmod +x "$HOME/bin/wezterm-ssh-log"
+  fi
+
+  if [ -f "$BIN_DIR/cleanup-install-backups" ]; then
+    install_file "$BIN_DIR/cleanup-install-backups" "$HOME/bin/cleanup-install-backups"
+    run chmod +x "$HOME/bin/cleanup-install-backups"
   fi
 
   for shortcut in ssh-log ssh-prod ssh-staging ssh-lab ssh-dev ssh-nolog ssh-noprobe; do

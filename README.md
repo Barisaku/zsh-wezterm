@@ -27,6 +27,7 @@ zsh_setup/
     ssh-noprobe
     wezterm-login-shell
     wezterm-ssh-log
+    cleanup-install-backups
     install-wezterm-windows-config
     install-wezterm-windows-config.cmd
   docs/
@@ -92,6 +93,7 @@ config/starship/starship.toml -> ~/.config/starship.toml
 config/wezterm/*.lua          -> ~/.config/wezterm/*.lua
 bin/wezterm-login-shell       -> ~/bin/wezterm-login-shell
 bin/wezterm-ssh-log           -> ~/bin/wezterm-ssh-log
+bin/cleanup-install-backups   -> ~/bin/cleanup-install-backups
 bin/ssh-*                     -> ~/bin/ssh-*
 ```
 
@@ -101,6 +103,13 @@ bin/ssh-*                     -> ~/bin/ssh-*
 ~/.zshrc.backup.YYYYMMDD-HHMMSS
 ~/.vimrc.backup.YYYYMMDD-HHMMSS
 ~/.config/starship.toml.backup.YYYYMMDD-HHMMSS
+```
+
+開発中にバックアップが増えすぎた場合は、対象を確認してから削除できます。
+
+```sh
+cleanup-install-backups
+cleanup-install-backups --force
 ```
 
 ## 初回確認
