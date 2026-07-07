@@ -112,6 +112,9 @@ SSH 接続先を `config/wezterm/ssh_profiles.lua` の `M.hosts` に書くと、
 | 複数行、通常環境 | 1回確認 |
 | 複数行、`prod` SSH | 拒否 |
 
+Windows の clipboard は単語だけでも末尾改行を返すことがあるため、安全ペーストでは末尾の改行を 1 つだけ取り除きます。
+中間の改行は残すので、複数行ペースト検出はそのまま動きます。
+
 ## Copy Mode
 
 `Ctrl-q [` で入ります。Vim 風に移動できます。
@@ -206,9 +209,12 @@ wezterm show-keys --lua
 Windows で設定が反映されているか確認する場合:
 
 ```bat
-wezterm show-keys | findstr /i "CTRL SHIFT t"
-wezterm show-keys | findstr /i "CTRL SHIFT w"
+wezterm show-keys | findstr /i "CTRL           T"
+wezterm show-keys | findstr /i "CTRL           W"
 wezterm show-keys | findstr /i "ALT 1"
 ```
+
+WezTerm の表示では `Ctrl-Shift-t` が `CTRL T` のように出ます。
+これは未反映ではなく、Shift 付き英字が大文字キーとして表示されているだけです。
 
 何も出ない場合は、Windows 側の `%USERPROFILE%\.config\wezterm\keybinds.lua` が古いか、WezTerm が別の config を読んでいます。

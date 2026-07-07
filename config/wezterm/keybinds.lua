@@ -52,6 +52,24 @@ local function get_clipboard_text()
   })
 end
 
+-- clipboard 取得コマンドが末尾に付ける改行を 1 つだけ取り除く。
+-- Windows の Get-Clipboard -Raw は単語だけでも末尾改行を返すことがある。
+local function strip_trailing_clipboard_newline(text)
+  if text == nil then
+    return nil
+  end
+
+  if text:sub(-2) == "\r\n" then
+    return text:sub(1, -3)
+  end
+
+  if text:sub(-1) == "\n" or text:sub(-1) == "\r" then
+    return text:sub(1, -2)
+  end
+
+  return text
+end
+
 -- 文字列が複数行かどうかを判定する。
 local function is_multiline(text)
   if text == nil then
@@ -110,7 +128,7 @@ end
 -- 安全ペースト。単一行はそのまま、複数行は profile に応じて拒否または確認する。
 local function safe_paste(window, pane)
   -- clipboard の中身を取得する。
-  local text = get_clipboard_text()
+  local text = strip_trailing_clipboard_newline(get_clipboard_text())
 
   -- clipboard が空なら何もしない。
   if text == nil or text == "" then

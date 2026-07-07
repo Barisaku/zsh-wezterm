@@ -227,9 +227,12 @@ bin\install-wezterm-windows-config.cmd
 Windows 側の WezTerm が本当に新しい keybinds を読んでいるか確認:
 
 ```bat
-wezterm show-keys | findstr /i "CTRL SHIFT t"
+wezterm show-keys | findstr /i "CTRL           T"
 wezterm show-keys | findstr /i "ALT 1"
 ```
+
+WezTerm の表示では `Ctrl-Shift-t` が `CTRL T` のように出ます。
+Shift 付き英字は大文字キーとして表示されるためです。
 
 何も出ない場合は、WezTerm が別の設定ディレクトリを読んでいるか、コピー先が違います。
 Windows 側の実体を確認してください。
