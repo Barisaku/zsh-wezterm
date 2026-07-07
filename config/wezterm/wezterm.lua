@@ -132,7 +132,12 @@ config.font = wezterm.font_with_fallback({
 })
 
 -- フォントサイズ。
-config.font_size = 13.0
+-- Windows は同じ数値でも大きく見えやすいため少し小さめにする。
+if is_windows then
+  config.font_size = 10.5
+else
+  config.font_size = 13.0
+end
 
 -- 新規ウィンドウの初期幅。文字セル数で指定する。通常の 80 列の約 2 倍。
 config.initial_cols = 160
