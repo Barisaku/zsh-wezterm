@@ -1,0 +1,37 @@
+#!/usr/bin/env sh
+set -eu
+
+# WSL から Windows 版 WezTerm の設定ディレクトリへ config/wezterm/*.lua をコピーする。
+# Windows 版 WezTerm は WSL 内ではなく Windows 側の ~/.config/wezterm を読む。
+
+SCRIPT_DIR=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
+SETUP_DIR=$(dirname -- "$SCRIPT_DIR")
+SOURCE_DIR="$SETUP_DIR/config/wezterm"
+
+if ! grep -qi microsoft /proc/version 2>/dev/null; then
+  printf 'This installer is intended to run inside WSL.\n' >&2
+  exit 1
+fi
+
+if ! command -v powershell.exe >/dev/null 2>&1; then
+  printf 'powershell.exe is required to locate the Windows user profile.\n' >&2
+  exit 1
+fi
+
+if ! command -v wslpath >/dev/null 2>&1; then
+  printf 'wslpath is required to convert the Windows user profile path.\n' >&2
+  exit 1
+fi
+
+windows_home_raw=$(powershell.exe -NoProfile -Command '[Environment]::GetFolderPath("UserProfile")' | tr -d '\r')
+windows_home=$(wslpath -u "$windows_home_raw")
+target_dir="$windows_home/.config/wezterm"
+
+printf 'Install WezTerm config for Windows WezTerm\n'
+printf 'Source: %s\n' "$SOURCE_DIR"
+printf 'Target: %s\n' "$target_dir"
+
+mkdir -p "$target_dir"
+cp "$SOURCE_DIR"/*.lua "$target_dir"/
+
+printf 'Done. Reload WezTerm with Ctrl-Shift-r or restart WezTerm.\n'

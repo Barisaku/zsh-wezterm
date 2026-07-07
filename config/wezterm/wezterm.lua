@@ -12,13 +12,90 @@ local ssh_profiles = require("ssh_profiles")
 -- HOME が取れない環境では WezTerm の home_dir を使う。
 local home = os.getenv("HOME") or wezterm.home_dir
 
+-- WezTerm 自体が Windows 上で動いているかどうか。
+local is_windows = wezterm.target_triple:find("windows") ~= nil
+
 -- PATH の区切り文字。Unix 系は :、Windows は ;。
 local path_separator = ":"
 
--- Windows / WSL 側では PATH の区切り文字を ; にする。
-if wezterm.target_triple:find("windows") then
+-- Windows 側では PATH の区切り文字を ; にする。
+if is_windows then
   path_separator = ";"
 end
+
+-- Windows 上の WezTerm から見える WSL domain 一覧を取得する。
+local function get_wsl_domains()
+  if not is_windows then
+    return {}
+  end
+
+  local ok, domains = pcall(wezterm.default_wsl_domains)
+  if ok and type(domains) == "table" then
+    return domains
+  end
+
+  return {}
+end
+
+-- 既定で使う WSL domain を選ぶ。
+-- 環境変数 WEZTERM_WSL_DISTRO=Ubuntu のように指定すると優先する。
+local function select_default_wsl_domain(domains)
+  local preferred = os.getenv("WEZTERM_WSL_DISTRO")
+
+  if preferred ~= nil and preferred ~= "" then
+    local preferred_domain = preferred
+    if not preferred_domain:find("^WSL:") then
+      preferred_domain = "WSL:" .. preferred_domain
+    end
+
+    for _, domain in ipairs(domains) do
+      if domain.name == preferred_domain then
+        return domain.name
+      end
+    end
+  end
+
+  for _, domain in ipairs(domains) do
+    if domain.name ~= nil and domain.name ~= "" then
+      return domain.name
+    end
+  end
+
+  return nil
+end
+
+-- Windows 用の launch menu を作る。
+-- SSH wrapper は WSL 側の ~/bin に置くため、Windows 側 menu には WSL 起動項目だけ出す。
+local function windows_launch_menu(wsl_domains)
+  local items = {}
+
+  for _, domain in ipairs(wsl_domains) do
+    if domain.name ~= nil and domain.name ~= "" then
+      table.insert(items, {
+        label = domain.name,
+        domain = { DomainName = domain.name },
+      })
+    end
+  end
+
+  table.insert(items, {
+    label = "Windows PowerShell",
+    args = { "powershell.exe", "-NoLogo" },
+  })
+
+  table.insert(items, {
+    label = "Windows cmd.exe",
+    args = { "cmd.exe" },
+  })
+
+  return items
+end
+
+-- Windows 上で利用できる WSL domain。
+local wsl_domains = get_wsl_domains()
+
+-- Windows 上で既定にする WSL domain。
+local default_wsl_domain = select_default_wsl_domain(wsl_domains)
 
 ----------------------------------------------------
 -- 起動と見た目
@@ -174,11 +251,26 @@ config.scrollback_lines = 100000
 -- ウィンドウを閉じる時に必ず確認する。
 config.window_close_confirmation = "AlwaysPrompt"
 
--- 新しいタブや起動時に使う shell。ローカル作業ログを保存する wrapper を使う。
-config.default_prog = { home .. "/bin/wezterm-login-shell" }
+if is_windows then
+  if default_wsl_domain ~= nil then
+    -- Windows 版 WezTerm では cmd.exe ではなく WSL を既定 domain にする。
+    config.default_domain = default_wsl_domain
+  else
+    -- WSL domain が見つからない時の fallback。WSL の既定 distro を起動する。
+    config.default_prog = { "wsl.exe", "--cd", "~" }
+  end
+else
+  -- macOS / Linux / WSL 内ではローカル作業ログを保存する wrapper を使う。
+  config.default_prog = { home .. "/bin/wezterm-login-shell" }
+end
 
--- launch menu。ssh_profiles.lua の M.hosts から SSH 接続先を組み立てる。
-config.launch_menu = ssh_profiles.launch_menu()
+if is_windows then
+  -- Windows 版 WezTerm では WSL 起動項目を中心にする。
+  config.launch_menu = windows_launch_menu(wsl_domains)
+else
+  -- macOS / Linux / WSL 内では ssh_profiles.lua の M.hosts から SSH 接続先を組み立てる。
+  config.launch_menu = ssh_profiles.launch_menu()
+end
 
 ----------------------------------------------------
 -- 右上ステータスと SSH 背景色

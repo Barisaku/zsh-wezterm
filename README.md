@@ -25,10 +25,13 @@ zsh_setup/
     ssh-noprobe
     wezterm-login-shell
     wezterm-ssh-log
+    install-wezterm-windows-config
+    install-wezterm-windows-config.cmd
   docs/
     zshrc_README.md
     starship_README.md
     wezterm_README.md
+    wsl_wezterm_README.md
     wezterm_KEYBINDINGS.md
     plugins_inventory.md
     plugins_install_guide.md
@@ -107,6 +110,23 @@ WezTerm は設定を再読み込みします。
 ```text
 Ctrl-Shift-r
 ```
+
+Windows 版 WezTerm を WSL メインで使う場合は、Windows 側にも WezTerm config を入れます。
+初回は WezTerm が `cmd.exe` で開くため、そこから次のどちらかを実行します。
+
+Windows 側にこのフォルダがある場合:
+
+```bat
+bin\install-wezterm-windows-config.cmd
+```
+
+WSL 側にこのフォルダがある場合:
+
+```sh
+wsl -e sh -lc "cd ~/outputs/zsh_setup && sh bin/install-wezterm-windows-config"
+```
+
+詳細は `docs/wsl_wezterm_README.md` を見てください。
 
 ## プラグイン方針
 

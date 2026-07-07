@@ -43,6 +43,34 @@ cd zsh_setup
 ./install.sh --only wezterm --dry-run
 ```
 
+Windows 版 WezTerm を WSL メインで使う場合は、WSL 側から Windows 側の WezTerm config へコピーします。
+初回は WezTerm が `cmd.exe` を開くため、そこから導入します。
+
+この設定フォルダが Windows 側にある場合:
+
+```bat
+bin\install-wezterm-windows-config.cmd
+```
+
+この設定フォルダが WSL 側にある場合:
+
+```sh
+wsl -e sh -lc "cd ~/outputs/zsh_setup && sh bin/install-wezterm-windows-config"
+```
+
+詳しくは `docs/wsl_wezterm_README.md` を見てください。
+
+## Windows / WSL
+
+Windows 上で WezTerm が動いている場合、この設定は WSL domain を自動検出して `default_domain` にします。
+これにより、起動時の既定 shell が `cmd.exe` ではなく WSL になります。
+
+複数の WSL distro がある場合は、Windows 側で優先 distro を指定できます。
+
+```powershell
+setx WEZTERM_WSL_DISTRO Ubuntu
+```
+
 ## 基本操作
 
 設定を再読み込み:
