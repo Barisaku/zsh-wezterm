@@ -18,12 +18,14 @@ Windows 版 WezTerm は Windows 側で動くアプリです。
 config.default_domain = "WSL:Ubuntu"
 ```
 
-WSL domain 起動時は zsh を優先します。
-zsh がまだ入っていない初回だけ bash に fallback します。
+WSL domain 起動時は、WSL 側の `~/bin/wezterm-login-shell` を優先します。
+これによりローカルターミナルログも WSL 側に保存されます。
+wrapper がまだ入っていない初回は zsh、zsh もなければ bash に fallback します。
 
 ```text
+~/bin/wezterm-login-shell がある: ローカルログ保存付き shell
 zsh がある: zsh -l
-zsh がない: bash -l
+zsh もない: bash -l
 ```
 
 実際の distro 名は自動検出します。
@@ -164,6 +166,7 @@ WSL タブで次を確認できます。
 echo "$SHELL"
 command -v zsh
 command -v wezterm-ssh-log
+command -v wezterm-login-shell
 type ssh
 echo "$WEZTERM_PANE"
 ```
@@ -173,15 +176,23 @@ echo "$WEZTERM_PANE"
 ```text
 zsh が使われている
 wezterm-ssh-log が見つかる
+wezterm-login-shell が見つかる
 ssh is a shell function と表示される
-WEZTERM_PANE が空ではない
+WEZTERM_PANE は環境によって空の場合がある
 ```
 
 この状態で `ssh host` すると、ログ保存と WezTerm の SSH 表示用 user var が動きます。
+`WEZTERM_PANE` が空でも、wrapper は OSC user var を送るため、Windows 側 WezTerm Lua が読み込まれていれば背景色とタブ色は変わります。
 ログは WSL 側の次に保存されます。
 
 ```text
 ~/.local/share/wezterm/ssh-logs/
+```
+
+ローカルターミナルログは WSL 側の次に保存されます。
+
+```text
+~/.local/share/wezterm/session-logs/
 ```
 
 ## トラブルシュート
@@ -222,12 +233,14 @@ cd outputs/zsh_setup
 ./install.sh
 exec zsh
 command -v wezterm-ssh-log
+command -v wezterm-login-shell
 type ssh
 echo "$WEZTERM_PANE"
 ```
 
 `type ssh` が `ssh is a shell function` にならない場合は、zsh ではなく bash が起動しているか、`.zshrc` が入っていません。
-`WEZTERM_PANE` が空の場合は、WezTerm 以外の端末、または WezTerm から WSL に入れていない状態です。
+`wezterm-login-shell` が見つからない場合は、WSL 側で `./install.sh` が完了していないため、ローカルターミナルログは保存されません。
+`WEZTERM_PANE` は WSL domain では空の場合があります。背景色が変わらない時は、Windows 側の `%USERPROFILE%\.config\wezterm\*.lua` が更新されているか、WezTerm を完全に再起動したかを確認してください。
 
 別 distro を使いたい:
 

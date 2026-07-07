@@ -54,7 +54,7 @@ wezterm_user_var() {
   local value="$2"
   local encoded=""
 
-  if [[ -z "${WEZTERM_PANE:-}" ]]; then
+  if [[ "${WEZTERM_DISABLE_USER_VARS:-}" == "1" ]]; then
     return 0
   fi
 

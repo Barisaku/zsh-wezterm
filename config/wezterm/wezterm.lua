@@ -32,12 +32,12 @@ local function get_wsl_domains()
   local ok, domains = pcall(wezterm.default_wsl_domains)
   if ok and type(domains) == "table" then
     for _, domain in ipairs(domains) do
-      -- Windows 版 WezTerm から WSL を開く時も zsh を優先する。
-      -- zsh がまだ入っていない初回環境では bash login shell に fallback する。
+      -- Windows 版 WezTerm から WSL を開く時も、WSL 側のログ保存 wrapper を優先する。
+      -- wrapper がまだ入っていない初回環境では zsh、zsh もなければ bash に fallback する。
       domain.default_prog = {
         "bash",
         "-lc",
-        "if command -v zsh >/dev/null 2>&1; then exec zsh -l; else exec bash -l; fi",
+        "if [ -x \"$HOME/bin/wezterm-login-shell\" ]; then exec \"$HOME/bin/wezterm-login-shell\"; elif command -v zsh >/dev/null 2>&1; then exec zsh -l; else exec bash -l; fi",
       }
 
       -- WSL 起動時の既定ディレクトリ。
