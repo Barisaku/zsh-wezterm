@@ -52,14 +52,19 @@ local function get_clipboard_text()
   })
 end
 
--- clipboard 取得コマンドが末尾に付ける改行を取り除く。
--- Windows の Get-Clipboard -Raw と PowerShell stdout の改行が重なることがある。
-local function strip_trailing_clipboard_newline(text)
+-- clipboard 文字列を terminal に流しやすい形へ整える。
+-- Windows の CRLF はそのまま送ると行間に空行ができることがあるため LF に揃える。
+-- 末尾改行は、単語だけの paste で Enter 扱いにならないよう取り除く。
+local function normalize_clipboard_text(text)
   if text == nil then
     return nil
   end
 
-  return text:gsub("[\r\n]+$", "")
+  text = text:gsub("\r\n", "\n")
+  text = text:gsub("\r", "\n")
+  text = text:gsub("\n+$", "")
+
+  return text
 end
 
 -- 文字列が複数行かどうかを判定する。
@@ -120,7 +125,7 @@ end
 -- 安全ペースト。単一行はそのまま、複数行は profile に応じて拒否または確認する。
 local function safe_paste(window, pane)
   -- clipboard の中身を取得する。
-  local text = strip_trailing_clipboard_newline(get_clipboard_text())
+  local text = normalize_clipboard_text(get_clipboard_text())
 
   -- clipboard が空なら何もしない。
   if text == nil or text == "" then
