@@ -217,5 +217,7 @@ Windows 版 WezTerm では、clipboard の読み取りに `win32yank.exe` を優
 `win32yank.exe` が無い場合は PowerShell の `Get-Clipboard` に fallback します。
 PowerShell は起動コストが大きいため、WSL 環境では `./install.sh --install-tools` で Windows 側の `%USERPROFILE%\bin` に `win32yank.exe` を入れるのがおすすめです。
 WezTerm Lua から見える PATH と shell から見える PATH が違う場合に備えて、`%USERPROFILE%\bin\win32yank.exe` のフルパスも先に試します。
+Windows では `pane:send_paste()` が一文字ずつ流れるように見えることがあるため、正規化済みの文字列を一度 clipboard へ戻し、`PasteFrom("Clipboard")` で貼り付けます。
+そのため、安全ペースト後の clipboard は正規化後の内容に置き換わります。
 
 profile ごとの動きは `config/wezterm/ssh_profiles.lua` で変更できます。

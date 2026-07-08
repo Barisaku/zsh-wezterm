@@ -121,6 +121,7 @@ SSH 接続先を `config/wezterm/ssh_profiles.lua` の `M.hosts` に書くと、
 Windows の clipboard は単語だけでも末尾改行を返すことがあるため、安全ペーストでは末尾の改行を取り除きます。
 また、Windows の CRLF 改行は LF に揃えます。
 中間の改行自体は残すので、複数行ペースト検出はそのまま動きます。
+Windows では貼り付け速度を優先し、正規化済みの文字列を一度 clipboard へ戻してから WezTerm 標準の paste 経路で貼り付けます。
 
 ## Copy Mode
 

@@ -82,6 +82,19 @@ local function normalize_clipboard_text(text)
   return text
 end
 
+-- 正規化済み文字列を pane へ貼り付ける。
+-- Windows では pane:send_paste(text) が一文字ずつ流れるように見えることがあるため、
+-- 正規化した文字列を clipboard に戻してから WezTerm のネイティブ paste 経路を使う。
+local function paste_normalized_text(window, pane, text)
+  if wezterm.target_triple:find("windows") then
+    window:copy_to_clipboard(text)
+    window:perform_action(act.PasteFrom("Clipboard"), pane)
+    return
+  end
+
+  pane:send_paste(text)
+end
+
 -- 文字列が複数行かどうかを判定する。
 local function is_multiline(text)
   if text == nil then
@@ -247,7 +260,7 @@ local function prompt_multiline_paste(window, pane, text, kind, line_count, prev
 
         -- Esc でキャンセルされた場合は nil になる。
         if line ~= nil then
-          confirm_pane:send_paste(text)
+          paste_normalized_text(confirm_window, confirm_pane, text)
         end
       end),
     }),
@@ -269,7 +282,7 @@ local function safe_paste(window, pane)
 
   -- 単一行なら通常通り貼り付ける。
   if not is_multiline(text) then
-    pane:send_paste(text)
+    paste_normalized_text(window, pane, text)
     return
   end
 
