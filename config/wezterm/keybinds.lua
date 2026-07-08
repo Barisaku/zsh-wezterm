@@ -19,18 +19,25 @@ end
 
 -- 複数の clipboard 取得コマンドを順番に試し、最初に成功した結果を返す。
 local function first_successful_command(commands)
+  local empty_stdout = nil
+
   for _, command in ipairs(commands) do
     -- 外部コマンドを実行して clipboard 文字列を取得する。
     local ok, stdout = wezterm.run_child_process(command)
 
-    -- 成功したら標準出力を clipboard 文字列として返す。
-    if ok and stdout ~= nil then
+    -- 成功して中身があれば標準出力を clipboard 文字列として返す。
+    if ok and stdout ~= nil and stdout ~= "" then
       return stdout
+    end
+
+    -- 成功したが空だった場合は、後続の fallback も試す。
+    if ok and stdout == "" and empty_stdout == nil then
+      empty_stdout = stdout
     end
   end
 
-  -- どのコマンドも失敗した場合は nil を返す。
-  return nil
+  -- clipboard が本当に空の場合に備え、空文字列を返す。
+  return empty_stdout
 end
 
 -- OS ごとに clipboard 文字列を取得する。
@@ -43,7 +50,10 @@ local function get_clipboard_text()
   -- Windows は win32yank.exe を優先し、無ければ PowerShell の Get-Clipboard に fallback する。
   -- PowerShell 起動は遅いため、install.sh --install-tools では win32yank.exe を導入する。
   if wezterm.target_triple:find("windows") then
+    local win32yank_in_user_bin = wezterm.home_dir .. "\\bin\\win32yank.exe"
+
     return first_successful_command({
+      { win32yank_in_user_bin, "-o", "--lf" },
       { "win32yank.exe", "-o", "--lf" },
       { "powershell.exe", "-NoProfile", "-Command", "[Console]::Out.Write((Get-Clipboard -Raw))" },
     })

@@ -81,6 +81,7 @@ exec zsh
 
 `--install-tools` は WSL 上の zsh 関連ツールに加えて、Windows 側の `%USERPROFILE%\bin` に `win32yank.exe` も入れます。
 Windows 版 WezTerm の安全ペーストは `win32yank.exe` を優先して clipboard を読むため、PowerShell fallback より軽くなります。
+WezTerm Lua から見える PATH と WSL/shell から見える PATH は違うことがあるため、設定側では `%USERPROFILE%\bin\win32yank.exe` のフルパスも試します。
 
 設定だけ入れる場合:
 
