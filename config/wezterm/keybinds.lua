@@ -83,15 +83,8 @@ local function normalize_clipboard_text(text)
 end
 
 -- 正規化済み文字列を pane へ貼り付ける。
--- Windows では pane:send_paste(text) が一文字ずつ流れるように見えることがあるため、
--- 正規化した文字列を clipboard に戻してから WezTerm のネイティブ paste 経路を使う。
-local function paste_normalized_text(window, pane, text)
-  if wezterm.target_triple:find("windows") then
-    window:copy_to_clipboard(text)
-    window:perform_action(act.PasteFrom("Clipboard"), pane)
-    return
-  end
-
+-- OS ごとの clipboard を書き換えず、WezTerm の paste 経路で送る。
+local function paste_normalized_text(_, pane, text)
   pane:send_paste(text)
 end
 
