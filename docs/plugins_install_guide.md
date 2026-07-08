@@ -462,6 +462,9 @@ ZSH_AUTOSUGGEST_HIGHLIGHT_STYLE='fg=244'
 ./install.sh --install-tools
 ```
 
+WSL で実行した場合は、Windows 版 WezTerm 用に `%USERPROFILE%\bin\win32yank.exe` も導入します。
+WezTerm の安全ペーストは `win32yank.exe` を優先し、未導入なら PowerShell `Get-Clipboard` に fallback します。
+
 マシン固有の上書きは `~/.zshrc.local` に置きます。
 たとえば Oh My Zsh を使わない環境では次を書きます。
 

@@ -79,6 +79,9 @@ cd outputs/zsh_setup
 exec zsh
 ```
 
+`--install-tools` は WSL 上の zsh 関連ツールに加えて、Windows 側の `%USERPROFILE%\bin` に `win32yank.exe` も入れます。
+Windows 版 WezTerm の安全ペーストは `win32yank.exe` を優先して clipboard を読むため、PowerShell fallback より軽くなります。
+
 設定だけ入れる場合:
 
 ```sh

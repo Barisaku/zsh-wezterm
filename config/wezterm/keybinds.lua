@@ -6,6 +6,9 @@ local act = wezterm.action
 -- SSH profile ごとの安全設定を参照する。
 local ssh_profiles = require("ssh_profiles")
 
+-- 右上ステータスに出す貼り付け警告状態。
+local paste_notice = nil
+
 -- 現在の workspace 名を変更する。
 local function rename_workspace(_, _, line)
   -- 入力が空でなければ workspace 名として反映する。
@@ -37,9 +40,11 @@ local function get_clipboard_text()
     return first_successful_command({ { "pbpaste" } })
   end
 
-  -- Windows / WSL は PowerShell の Get-Clipboard を使う。
+  -- Windows は win32yank.exe を優先し、無ければ PowerShell の Get-Clipboard に fallback する。
+  -- PowerShell 起動は遅いため、install.sh --install-tools では win32yank.exe を導入する。
   if wezterm.target_triple:find("windows") then
     return first_successful_command({
+      { "win32yank.exe", "-o", "--lf" },
       { "powershell.exe", "-NoProfile", "-Command", "[Console]::Out.Write((Get-Clipboard -Raw))" },
     })
   end
@@ -122,8 +127,128 @@ local function preview_text(text, max_lines)
   return table.concat(lines, " / ")
 end
 
--- 安全ペースト。単一行はそのまま、複数行は profile に応じて拒否または確認する。
+-- pane を識別するための ID を安全に取得する。
+local function pane_identity(pane)
+  local ok, pane_id = pcall(function()
+    return pane:pane_id()
+  end)
+
+  if ok and pane_id ~= nil then
+    return tostring(pane_id)
+  end
+
+  return tostring(pane)
+end
+
+-- ローカル側で警告音を鳴らす。
+-- BEL を pane へ送ると remote shell/Vim に Ctrl-g として届き得るため、
+-- OS 側の短い通知音を background process で鳴らす。
+local function ring_local_bell()
+  local command = nil
+
+  if wezterm.target_triple:find("darwin") then
+    command = { "osascript", "-e", "beep" }
+  elseif wezterm.target_triple:find("windows") then
+    command = { "powershell.exe", "-NoProfile", "-Command", "[console]::beep(880,120)" }
+  else
+    command = { "sh", "-lc", "command -v canberra-gtk-play >/dev/null 2>&1 && canberra-gtk-play -i bell >/dev/null 2>&1" }
+  end
+
+  pcall(function()
+    wezterm.background_child_process(command)
+  end)
+end
+
+-- 貼り付け警告を右上ステータスに出す。
+local function set_paste_notice(window, pane, kind, message, seconds)
+  paste_notice = {
+    pane_id = pane_identity(pane),
+    kind = kind,
+    message = message,
+    expires_at = os.time() + seconds,
+  }
+
+  -- update-right-status を待たず、なるべく即時に右上表示を更新する。
+  window:perform_action(act.EmitEvent("refresh-status"), pane)
+  -- 視覚警告だけだと見落とすため、ローカル通知音も鳴らす。
+  ring_local_bell()
+end
+
+-- 貼り付け警告を消す。
+local function clear_paste_notice(window, pane)
+  paste_notice = nil
+  window:perform_action(act.EmitEvent("refresh-status"), pane)
+end
+
+-- wezterm.lua から呼ばれ、右上ステータスに貼り付け警告を追加する。
+local function paste_status_cells(pane)
+  if paste_notice == nil then
+    return {}
+  end
+
+  if os.time() > paste_notice.expires_at then
+    paste_notice = nil
+    return {}
+  end
+
+  if paste_notice.pane_id ~= pane_identity(pane) then
+    return {}
+  end
+
+  local bg = "#b7791f"
+  local fg = "#101010"
+
+  if paste_notice.kind == "prod" then
+    bg = "#c53030"
+    fg = "#ffffff"
+  end
+
+  return {
+    { Background = { Color = bg } },
+    { Foreground = { Color = fg } },
+    { Attribute = { Intensity = "Bold" } },
+    { Text = " " .. paste_notice.message .. " " },
+    { Attribute = { Intensity = "Normal" } },
+  }
+end
+
+-- 複数行ペーストの確認 UI を開く。
+local function prompt_multiline_paste(window, pane, text, kind, line_count, preview)
+  -- prod は特に目立つ文言にする。
+  local description = "Multiline paste: " .. tostring(line_count) .. " lines. Enter to paste, Esc to cancel."
+
+  if kind == "prod" then
+    description = "PROD multiline paste: " .. tostring(line_count) .. " lines. Enter to paste, Esc to cancel."
+  end
+
+  -- 右上警告と通知音を先に出してから、WezTerm の確認 UI を開く。
+  if kind == "prod" then
+    set_paste_notice(window, pane, "prod", "PROD PASTE: " .. tostring(line_count) .. " lines", 30)
+  else
+    set_paste_notice(window, pane, "confirm", "MULTILINE PASTE: " .. tostring(line_count) .. " lines", 30)
+  end
+
+  window:toast_notification("WezTerm", description .. " / " .. preview, nil, 5000)
+  window:perform_action(
+    act.PromptInputLine({
+      description = description,
+      action = wezterm.action_callback(function(confirm_window, confirm_pane, line)
+        clear_paste_notice(confirm_window, confirm_pane)
+
+        -- Esc でキャンセルされた場合は nil になる。
+        if line ~= nil then
+          confirm_pane:send_paste(text)
+        end
+      end),
+    }),
+    pane
+  )
+end
+
+-- 安全ペースト。単一行はそのまま、複数行は確認 UI を出してから貼り付ける。
 local function safe_paste(window, pane)
+  clear_paste_notice(window, pane)
+
   -- clipboard の中身を取得する。
   local text = normalize_clipboard_text(get_clipboard_text())
 
@@ -138,38 +263,20 @@ local function safe_paste(window, pane)
     return
   end
 
-  -- prod など拒否設定の profile では複数行ペーストを止める。
+  -- 確認メッセージに表示する行数。
+  local line_count = count_lines(text)
+
+  -- 確認メッセージに表示する先頭 preview。
+  local preview = preview_text(text, 3)
+
+  -- prod では強い警告色で確認 UI を出す。
   if ssh_profiles.blocks_multiline_paste(pane) then
-    window:toast_notification("WezTerm", "本番 SSH では複数行ペーストを拒否しました", nil, 4000)
+    prompt_multiline_paste(window, pane, text, "prod", line_count, preview)
     return
   end
 
-  -- 確認ダイアログに表示する行数。
-  local line_count = count_lines(text)
-
-  -- 確認ダイアログに表示する先頭 preview。
-  local preview = preview_text(text, 3)
-
-  -- 確認。Enter で貼り付け、Esc でキャンセル。
-  window:perform_action(
-    act.PromptInputLine({
-      description = "複数行ペースト検出: "
-        .. tostring(line_count)
-        .. "行 / "
-        .. preview
-        .. " / Enterで貼り付け、Escでキャンセル",
-      action = wezterm.action_callback(function(w, p, line)
-        -- Esc の場合は nil になるので中止する。
-        if line == nil then
-          return
-        end
-
-        -- 確認済みの複数行テキストを貼り付ける。
-        p:send_paste(text)
-      end),
-    }),
-    pane
-  )
+  -- 通常環境でも確認 UI を出す。
+  prompt_multiline_paste(window, pane, text, "confirm", line_count, preview)
 end
 
 -- Ctrl-c 用の smart copy。
@@ -188,7 +295,7 @@ local function smart_copy_or_interrupt(window, pane)
   window:perform_action(act.SendKey({ key = "c", mods = "CTRL" }), pane)
 end
 
-return {
+local M = {
   -- 通常時のキーバインド。
   keys = {
     {
@@ -743,3 +850,7 @@ return {
     },
   },
 }
+
+M.paste_status_cells = paste_status_cells
+
+return M

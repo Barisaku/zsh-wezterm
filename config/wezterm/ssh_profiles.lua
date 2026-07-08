@@ -89,7 +89,7 @@ local readable_terminal_colors = {
 
 -- SSH 接続種別ごとの見た目と安全設定。
 M.profiles = {
-  -- 本番環境。強い背景色にし、複数行ペーストを拒否する。
+  -- 本番環境。強い背景色にし、複数行ペーストは強い二段階確認にする。
   prod = {
     -- 右上ステータスに出す短いラベル。
     label = "PROD",
@@ -105,7 +105,7 @@ M.profiles = {
     tab_fg = "#082f49",
     -- SSH 中に上書きするウィンドウ背景色。
     window_bg = "#3b1113",
-    -- 複数行ペーストを拒否するかどうか。
+    -- 複数行ペーストを強い警告付きにするかどうか。
     block_multiline_paste = true,
   },
 
@@ -125,7 +125,7 @@ M.profiles = {
     tab_fg = "#082f49",
     -- SSH 中に上書きするウィンドウ背景色。
     window_bg = "#342606",
-    -- 複数行ペーストを拒否するかどうか。
+    -- 複数行ペーストを強い警告付きにするかどうか。
     block_multiline_paste = false,
   },
 
@@ -145,7 +145,7 @@ M.profiles = {
     tab_fg = "#082f49",
     -- SSH 中に上書きするウィンドウ背景色。
     window_bg = "#26133f",
-    -- 複数行ペーストを拒否するかどうか。
+    -- 複数行ペーストを強い警告付きにするかどうか。
     block_multiline_paste = false,
   },
 
@@ -165,7 +165,7 @@ M.profiles = {
     tab_fg = "#082f49",
     -- SSH 中に上書きするウィンドウ背景色。
     window_bg = "#06263a",
-    -- 複数行ペーストを拒否するかどうか。
+    -- 複数行ペーストを強い警告付きにするかどうか。
     block_multiline_paste = false,
   },
 
@@ -185,7 +185,7 @@ M.profiles = {
     tab_fg = "#082f49",
     -- SSH 中に上書きするウィンドウ背景色。
     window_bg = "#1e2930",
-    -- 複数行ペーストを拒否するかどうか。
+    -- 複数行ペーストを強い警告付きにするかどうか。
     block_multiline_paste = false,
   },
 
@@ -205,7 +205,7 @@ M.profiles = {
     tab_fg = "#052e16",
     -- SSH 中に上書きするウィンドウ背景色。
     window_bg = "#0f2f1d",
-    -- 複数行ペーストを拒否するかどうか。
+    -- 複数行ペーストを強い警告付きにするかどうか。
     block_multiline_paste = false,
   },
 }
@@ -347,13 +347,14 @@ function M.apply_window_overrides(window, pane)
   end)
   local window_id = ok and tostring(raw_window_id) or tostring(window)
 
-  -- 既存の一時上書き設定を取得する。
-  local overrides = window:get_config_overrides() or {}
-
   -- タブ切替時に同じ状態を何度も反映すると重いので、変化がない場合は何もしない。
   if last_override_state_by_window[window_id] == next_state_key then
     return
   end
+
+  -- 既存の一時上書き設定を取得する。
+  -- 状態変化がある時だけ呼ぶことで、貼り付けや status 更新時の余計な処理を減らす。
+  local overrides = window:get_config_overrides() or {}
 
   -- SSH でない時は SSH 用の背景上書きを解除する。
   if info == nil then
@@ -373,12 +374,12 @@ function M.apply_window_overrides(window, pane)
   last_override_state_by_window[window_id] = next_state_key
 end
 
--- 現在 pane で複数行ペーストを拒否するかどうかを返す。
+-- 現在 pane で複数行ペーストを強い警告付きにするかどうかを返す。
 function M.blocks_multiline_paste(pane)
   -- 現在 pane の SSH 情報を取る。
   local info = M.detect(pane)
 
-  -- SSH でなければ拒否しない。
+  -- SSH でなければ通常警告にする。
   if info == nil then
     return false
   end

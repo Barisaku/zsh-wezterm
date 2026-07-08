@@ -320,6 +320,13 @@ local function refresh_status_and_ssh_appearance(window, pane)
     table.insert(cells, { Text = " TABLE " .. key_table .. " " })
   end
 
+  -- 複数行ペースト確認など、見落としたくない警告を右上に表示する。
+  if keybinds.paste_status_cells ~= nil then
+    for _, cell in ipairs(keybinds.paste_status_cells(pane)) do
+      table.insert(cells, cell)
+    end
+  end
+
   -- SSH profile / host 表示を追加する。
   for _, cell in ipairs(ssh_profiles.right_status(pane)) do
     table.insert(cells, cell)
@@ -331,6 +338,11 @@ end
 
 -- 右上ステータス更新時に、キー操作モードと SSH 情報を表示する。
 wezterm.on("update-right-status", function(window, pane)
+  refresh_status_and_ssh_appearance(window, pane)
+end)
+
+-- キーバインド側から明示的に右上ステータスを更新したい時に使う。
+wezterm.on("refresh-status", function(window, pane)
   refresh_status_and_ssh_appearance(window, pane)
 end)
 

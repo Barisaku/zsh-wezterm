@@ -30,6 +30,7 @@ ssh-dev
 - SSH 終了後や接続失敗後に WezTerm 側の SSH 表示を解除
 - WezTerm の背景色、タブ色、右上表示を SSH profile に合わせる
 - 背景の透明度や macOS のぼかしは profile ごとに切り替えず、タブ切替時の負荷を抑える
+- 複数行ペースト確認は一時入力 UI を出さず、背景色が揺れにくい二段階方式にする
 
 ## タブ移動の軽さ
 
@@ -227,5 +228,5 @@ WEZTERM_SSH_HOST
 - profile ごとの背景色
 - profile ごとのタブ色
 - 背景変更時に文字色、ANSI 色、選択範囲、カーソル色も読みやすく調整
-- prod だけ複数行 paste を拒否
+- prod は複数行 paste を赤い右上警告付きの二段階確認にする
 - launch menu から `wezterm-ssh-log` を呼ぶ

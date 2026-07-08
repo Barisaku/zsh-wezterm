@@ -22,6 +22,7 @@ Usage:
 
 Options:
   --install-tools  Install recommended tools with brew or apt when available.
+                   On WSL, also install win32yank.exe for Windows WezTerm.
   --dry-run        Print actions without changing files.
   --force          Overwrite without asking. Existing files are still backed up.
   --only TARGET    Install only one target: all, zsh, starship, wezterm, vim.
@@ -170,6 +171,37 @@ install_tools_with_apt() {
   log "apt package names may differ by distro. Install starship, zoxide, pyenv, rbenv, ghq, atuin, and terraform separately if unavailable."
 }
 
+install_win32yank_for_windows_wezterm() {
+  if [ "$OS" != "wsl" ]; then
+    return 0
+  fi
+
+  if ! command -v powershell.exe >/dev/null 2>&1; then
+    log "powershell.exe is not available. Skipping win32yank.exe install."
+    return 0
+  fi
+
+  log "Installing win32yank.exe for Windows WezTerm clipboard..."
+
+  if [ "$DRY_RUN" -eq 1 ]; then
+    log "[dry-run] Download win32yank.exe to Windows %USERPROFILE%\\bin"
+    return 0
+  fi
+
+  powershell.exe -NoProfile -ExecutionPolicy Bypass -Command "\
+\$ErrorActionPreference = 'Stop'; \
+\$bin = Join-Path \$env:USERPROFILE 'bin'; \
+\$exe = Join-Path \$bin 'win32yank.exe'; \
+if (Test-Path \$exe) { Write-Output \"win32yank.exe is already installed: \$exe\"; exit 0 }; \
+New-Item -ItemType Directory -Force -Path \$bin | Out-Null; \
+\$zip = Join-Path \$env:TEMP 'win32yank-x64.zip'; \
+\$url = 'https://github.com/equalsraf/win32yank/releases/latest/download/win32yank-x64.zip'; \
+Invoke-WebRequest -Uri \$url -OutFile \$zip; \
+Expand-Archive -Force \$zip \$bin; \
+if (-not (Test-Path \$exe)) { throw \"win32yank.exe was not found after extracting \$zip\" }; \
+Write-Output \"Installed win32yank.exe: \$exe\""
+}
+
 install_zsh_plugin_repos() {
   if ! command -v git >/dev/null 2>&1; then
     log "git is not installed. Skipping zsh plugin clone."
@@ -214,6 +246,7 @@ install_tools() {
     install_tools_with_brew
     install_oh_my_zsh
     install_zsh_plugin_repos
+    install_win32yank_for_windows_wezterm
     return 0
   fi
 
@@ -221,6 +254,7 @@ install_tools() {
     install_tools_with_apt
     install_oh_my_zsh
     install_zsh_plugin_repos
+    install_win32yank_for_windows_wezterm
     return 0
   fi
 
@@ -228,6 +262,7 @@ install_tools() {
   log "See docs/plugins_install_guide.md"
   install_oh_my_zsh
   install_zsh_plugin_repos
+  install_win32yank_for_windows_wezterm
 }
 
 post_check() {

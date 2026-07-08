@@ -113,8 +113,10 @@ SSH 接続先を `config/wezterm/ssh_profiles.lua` の `M.hosts` に書くと、
 | 状態 | 動き |
 |---|---|
 | 単一行 | そのまま貼り付け |
-| 複数行、通常環境 | 1回確認 |
-| 複数行、`prod` SSH | 拒否 |
+| 複数行、通常環境 | 確認 UI を表示。`Enter` で貼り付け、`Esc` でキャンセル |
+| 複数行、`prod` SSH | 赤い警告付きの確認 UI を表示。`Enter` で貼り付け、`Esc` でキャンセル |
+
+複数行ペーストの警告時は、見落とし防止のため右上ステータス表示とローカル側の短い通知音も使います。
 
 Windows の clipboard は単語だけでも末尾改行を返すことがあるため、安全ペーストでは末尾の改行を取り除きます。
 また、Windows の CRLF 改行は LF に揃えます。
@@ -181,7 +183,7 @@ WezTerm のキーではなく shell command ですが、この設定の重要機
 |---|---|
 | `ssh example-host` | zsh では SSH ログ保存 + 背景色/タブ色変更 + 入室時確認 |
 | `ssh-log example-host` | SSH ログ保存 + 入室時確認 |
-| `ssh-prod example-host` | 本番 profile。背景色変更、右上表示、複数行ペースト拒否 |
+| `ssh-prod example-host` | 本番 profile。背景色変更、右上表示、複数行ペーストは赤い二段階確認 |
 | `ssh-staging example-host` | staging profile |
 | `ssh-lab example-host` | lab profile。dev と staging の中間の注意度 |
 | `ssh-dev example-host` | dev profile |

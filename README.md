@@ -61,6 +61,8 @@ cd zsh_setup
 ./install.sh --install-tools
 ```
 
+WSL で `--install-tools` を使うと、Windows 版 WezTerm の安全ペースト高速化用に `win32yank.exe` も Windows 側の `%USERPROFILE%\bin` へ入れます。
+
 確認なしで上書き:
 
 ```sh

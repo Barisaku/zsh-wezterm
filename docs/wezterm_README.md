@@ -23,8 +23,8 @@ config/wezterm/
 - profile ごとに背景色を変更
 - profile ごとにタブ色を変更
 - 背景変更時に文字色、ANSI 色、カーソル色、選択色も合わせて変更
-- `prod` profile では複数行ペーストを拒否
-- `staging` / `lab` / `dev` / ローカルでは複数行ペーストを1回確認
+- `prod` profile では複数行ペーストを赤い二段階確認にする
+- `staging` / `lab` / `dev` / ローカルでは複数行ペーストを二段階確認
 - zsh では通常の `ssh` も wrapper 経由にする
 - `vagrant ssh` は Vagrant 専用 profile 色で wrapper 経由にする
 - zsh / fish / bash など、shell に依存しない `ssh-prod` などの実行ファイルを提供
@@ -200,13 +200,21 @@ Ctrl-q Shift-S
 `prod`:
 
 ```text
-拒否
+赤い警告付きの確認 UI。Enter で貼り付け、Esc でキャンセル
 ```
 
 `staging` / `lab` / `dev` / ローカル:
 
 ```text
-1回確認
+確認 UI。Enter で貼り付け、Esc でキャンセル
 ```
+
+確認には WezTerm の `PromptInputLine` を使います。
+見落とし防止のため、警告時には右上ステータス表示とローカル側の短い通知音も使います。
+SSH 中の背景色が一瞬ローカル色へ戻る場合がありますが、警告として分かりやすい動きを優先しています。
+
+Windows 版 WezTerm では、clipboard の読み取りに `win32yank.exe` を優先します。
+`win32yank.exe` が無い場合は PowerShell の `Get-Clipboard` に fallback します。
+PowerShell は起動コストが大きいため、WSL 環境では `./install.sh --install-tools` で Windows 側の `%USERPROFILE%\bin` に `win32yank.exe` を入れるのがおすすめです。
 
 profile ごとの動きは `config/wezterm/ssh_profiles.lua` で変更できます。
