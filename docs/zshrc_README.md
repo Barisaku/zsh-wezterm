@@ -346,7 +346,10 @@ where zsh
 rm
 cp
 mv
+crontab -r
 ```
+
+`crontab -e` / `crontab -l` はそのまま実行し、現在の crontab を削除する `crontab -r` だけ確認を挟みます。
 
 `sudo` 後も alias が展開されます。
 
@@ -631,6 +634,8 @@ alias rm='rm -i'
 alias cp='cp -i'
 alias mv='mv -i'
 ```
+
+`crontab -r` の確認が不要なら `crontab()` 関数を外します。
 
 suffix alias が予想外に感じる場合は、このあたりを外します。
 

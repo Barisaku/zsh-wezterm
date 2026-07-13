@@ -591,6 +591,44 @@ alias rm='rm -i'
 alias cp='cp -i'
 alias mv='mv -i'
 
+# crontab -r は現在の crontab を消すため、実行前に確認する。
+# crontab -e / -l などはそのまま通す。
+function crontab() {
+  local arg
+  local needs_confirm=0
+
+  for arg in "$@"; do
+    case "$arg" in
+      --)
+        break
+        ;;
+      -r|-[!-]*r*)
+        needs_confirm=1
+        break
+        ;;
+    esac
+  done
+
+  if [ "$needs_confirm" -eq 1 ]; then
+    echo "WARNING: crontab -r removes your current crontab." >&2
+    printf "Really run 'crontab %s'? [y/N] " "$*" >&2
+    local answer
+    read -r answer
+    case "$answer" in
+      y|Y|yes|YES)
+        command crontab "$@"
+        ;;
+      *)
+        echo "Cancelled." >&2
+        return 1
+        ;;
+    esac
+    return
+  fi
+
+  command crontab "$@"
+}
+
 alias vi='vim'
 
 # グローバル alias。
